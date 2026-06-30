@@ -32,7 +32,7 @@
 - [ ] **RATIO-01**: User can select from aspect ratio presets: 16:9, 3:2, 1:1, 2:3
 - [ ] **RATIO-02**: Selecting a preset immediately constrains the crop window to that ratio
 - [ ] **RATIO-03**: User can enter a custom ratio as "W:H" (e.g., "7:4") and apply it
-- [ ] **RATIO-04**: User can enter custom pixel dimensions (e.g., "1200×800") for export size
+- [ ] **RATIO-04**: User can enter custom pixel dimensions (e.g., "1200x800") for export size
 - [ ] **RATIO-05**: Custom ratio and pixel size inputs are mutually exclusive modes (radio/toggle)
 
 ### AI Detection
@@ -47,7 +47,7 @@
 
 - [ ] **EXPT-01**: "Export" button opens a format/quality options modal before downloading
 - [ ] **EXPT-02**: Modal offers format selection: JPG, PNG, WebP
-- [ ] **EXPT-03**: Modal offers a quality slider (1–100) for lossy formats (JPG, WebP)
+- [ ] **EXPT-03**: Modal offers a quality slider (1-100) for lossy formats (JPG, WebP)
 - [ ] **EXPT-04**: Export applies the current crop settings to all images in the list
 - [ ] **EXPT-05**: Exported files preserve original filenames with an optional "_cropped" suffix
 - [ ] **EXPT-06**: Multiple images are bundled into a single ZIP download
@@ -95,44 +95,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IMPT-01 | — | Pending |
-| IMPT-02 | — | Pending |
-| IMPT-03 | — | Pending |
-| IMPT-04 | — | Pending |
-| PRVW-01 | — | Pending |
-| PRVW-02 | — | Pending |
-| PRVW-03 | — | Pending |
-| CROP-01 | — | Pending |
-| CROP-02 | — | Pending |
-| CROP-03 | — | Pending |
-| CROP-04 | — | Pending |
-| CROP-05 | — | Pending |
-| CROP-06 | — | Pending |
-| RATIO-01 | — | Pending |
-| RATIO-02 | — | Pending |
-| RATIO-03 | — | Pending |
-| RATIO-04 | — | Pending |
-| RATIO-05 | — | Pending |
-| AIDT-01 | — | Pending |
-| AIDT-02 | — | Pending |
-| AIDT-03 | — | Pending |
-| AIDT-04 | — | Pending |
-| AIDT-05 | — | Pending |
-| EXPT-01 | — | Pending |
-| EXPT-02 | — | Pending |
-| EXPT-03 | — | Pending |
-| EXPT-04 | — | Pending |
-| EXPT-05 | — | Pending |
-| EXPT-06 | — | Pending |
-| EXPT-07 | — | Pending |
-| UIUX-01 | — | Pending |
-| UIUX-02 | — | Pending |
+| IMPT-01 | Phase 2 | Pending |
+| IMPT-02 | Phase 2 | Pending |
+| IMPT-03 | Phase 2 | Pending |
+| IMPT-04 | Phase 2 | Pending |
+| PRVW-01 | Phase 2 | Pending |
+| PRVW-02 | Phase 2 | Pending |
+| PRVW-03 | Phase 2 | Pending |
+| CROP-01 | Phase 2 | Pending |
+| CROP-02 | Phase 2 | Pending |
+| CROP-03 | Phase 2 | Pending |
+| CROP-04 | Phase 2 | Pending |
+| CROP-05 | Phase 2 | Pending |
+| CROP-06 | Phase 2 | Pending |
+| RATIO-01 | Phase 2 | Pending |
+| RATIO-02 | Phase 2 | Pending |
+| RATIO-03 | Phase 2 | Pending |
+| RATIO-04 | Phase 2 | Pending |
+| RATIO-05 | Phase 2 | Pending |
+| AIDT-01 | Phase 3 | Pending |
+| AIDT-02 | Phase 3 | Pending |
+| AIDT-03 | Phase 3 | Pending |
+| AIDT-04 | Phase 3 | Pending |
+| AIDT-05 | Phase 3 | Pending |
+| EXPT-01 | Phase 5 | Pending |
+| EXPT-02 | Phase 5 | Pending |
+| EXPT-03 | Phase 5 | Pending |
+| EXPT-04 | Phase 5 | Pending |
+| EXPT-05 | Phase 5 | Pending |
+| EXPT-06 | Phase 5 | Pending |
+| EXPT-07 | Phase 5 | Pending |
+| UIUX-01 | Phase 2 | Pending |
+| UIUX-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-24 after initial definition*
+*Last updated: 2026-06-29 after roadmap creation*
