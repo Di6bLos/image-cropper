@@ -8,5 +8,6 @@ export default defineNuxtConfig({
       crossOriginOpenerPolicy: 'same-origin',
     },
   },
+  css: ['~/assets/sass/main.scss'],
   devtools: { enabled: true },
 })
