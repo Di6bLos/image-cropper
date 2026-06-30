@@ -30,7 +30,9 @@
 4. Memory management patterns implemented (Blob URL registry, canvas pooling)
 5. SSR-safe patterns working (no window/document errors on server render)
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 01-foundation/01-foundation/01-01-PLAN.md — Initialize Nuxt 3 project with modules and COOP/COEP headers
+- [ ] 01-foundation/01-foundation/01-02-PLAN.md — Memory management composables and worker foundation
 
 ---
 
@@ -116,7 +118,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Not started | - |
+| 1. Foundation | 0/2 | Not started | - |
 | 2. Core Cropping | 0/8 | Not started | - |
 | 3. AI Detection | 0/5 | Not started | - |
 | 4. Batch Processing | 0/5 | Not started | - |
