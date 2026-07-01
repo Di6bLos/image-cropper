@@ -1,11 +1,11 @@
-// CSS Custom Properties for dark mode support
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --text-primary: #1a1a1a;
-  --text-secondary: #666666;
-  --accent: #3b82f6;
-}
+/**
+ * main.scss - Global styles with CSS variables for light/dark mode theming
+ *
+ * @see UIUX-01: Dark mode support using CSS variables
+ * @see UIUX-02: Responsive layout with grid
+ */
+
+@use './variables' as *;
 
 // Base reset styles
 *,
@@ -16,20 +16,108 @@
   padding: 0;
 }
 
+html,
+body,
+#__nuxt {
+  height: 100%;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --text-primary: #f5f5f5;
-    --text-secondary: #a0a0a0;
-    --accent: #60a5fa;
+// Form elements use CSS variables
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+button {
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+// Image styling
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// Selection styling
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--text-secondary);
+  }
+}
+
+// App layout helpers
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+  gap: 0;
+}
+
+// Image list sidebar styling
+.image-list {
+  height: 100%;
+  overflow: hidden;
+}
+
+// Crop workspace styling
+.crop-workspace {
+  height: 100%;
+  overflow: hidden;
+}
+
+// Ratio controls styling
+.ratio-controls {
+  background: var(--bg-primary);
+}
+
+// Responsive breakpoint for mobile
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 200px 1fr;
   }
 }
