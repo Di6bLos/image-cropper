@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="process.client"
+    v-if="isMounted"
     ref="dropzoneRef"
     class="dropzone"
     :class="{
@@ -101,6 +101,12 @@ export interface DropZoneProps {
   maxSize?: number
 }
 
+// SSR-safe: only render dropzone after mount
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
+
 const props = withDefaults(defineProps<DropZoneProps>(), {
   title: 'Drop images here or click to browse',
   maxFiles: 50,
@@ -136,19 +142,16 @@ defineExpose({
 
 // Event handlers that forward to useFileUpload
 function handleDragEnter(e: DragEvent) {
-  if (!process.client) return
   e.preventDefault()
   // Counter-based tracking is handled by useFileUpload
 }
 
 function handleDragLeave(e: DragEvent) {
-  if (!process.client) return
   e.preventDefault()
   // Counter-based tracking is handled by useFileUpload
 }
 
 function handleDragOver(e: DragEvent) {
-  if (!process.client) return
   e.preventDefault()
   if (e.dataTransfer) {
     e.dataTransfer.dropEffect = 'copy'
@@ -156,7 +159,6 @@ function handleDragOver(e: DragEvent) {
 }
 
 function handleDrop(e: DragEvent) {
-  if (!process.client) return
   e.preventDefault()
 
   const droppedFiles = Array.from(e.dataTransfer?.files || [])
@@ -167,7 +169,6 @@ function handleDrop(e: DragEvent) {
 }
 
 function handleFileInput(e: Event) {
-  if (!process.client) return
   const target = e.target as HTMLInputElement
   const selectedFiles = Array.from(target.files || [])
   if (selectedFiles.length > 0) {

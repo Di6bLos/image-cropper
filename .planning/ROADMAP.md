@@ -31,8 +31,8 @@
 5. SSR-safe patterns working (no window/document errors on server render)
 
 **Plans:** 2/2 plans complete
-- [ ] 01-foundation/01-foundation/01-01-PLAN.md — Initialize Nuxt 3 project with modules and COOP/COEP headers
-- [ ] 01-foundation/01-foundation/01-02-PLAN.md — Memory management composables and worker foundation
+- [x] 01-foundation/01-foundation/01-01-PLAN.md — Initialize Nuxt 3 project with modules and COOP/COEP headers
+- [x] 01-foundation/01-foundation/01-02-PLAN.md — Memory management composables and worker foundation
 
 ---
 
@@ -53,7 +53,12 @@
 7. User can select ratio presets (16:9, 3:2, 1:1, 2:3) or enter custom W:H ratio and custom pixel dimensions
 8. Canvas and crop window scale responsively to browser window; dark mode respects system preference
 
-**Plans:** TBD
+**Plans:** 4/4 plans
+
+- [x] 02-core-cropping/02-core-cropping/02-01-PLAN.md — Core infrastructure (composables + stores)
+- [x] 02-core-cropping/02-core-cropping/02-02-PLAN.md — UI components (DropZone, ImageList, CropOverlay, RatioControls)
+- [x] 02-core-cropping/02-core-cropping/02-03-PLAN.md — Page layout integration (responsive + dark mode)
+- [x] 02-core-cropping/02-core-cropping/02-04-PLAN.md — Testing and verification
 
 **UI hint:** yes
 
@@ -118,8 +123,8 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/2 | Complete   | 2026-06-30 |
-| 2. Core Cropping | 0/8 | Not started | - |
+| 1. Foundation | 2/2 | Complete    | 2026-06-30 |
+| 2. Core Cropping | 0/4 | Not started | - |
 | 3. AI Detection | 0/5 | Not started | - |
 | 4. Batch Processing | 0/5 | Not started | - |
 | 5. Export Polish | 0/6 | Not started | - |
