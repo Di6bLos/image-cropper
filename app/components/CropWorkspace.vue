@@ -171,12 +171,12 @@ let dragStartY = 0
 let dragStartCropX = 0
 let dragStartCropY = 0
 
-function onCropDragStart() {
+function onCropDragStart(e: MouseEvent) {
   if (!process.client || !selectedImage.value) return
 
   isDragging.value = true
-  dragStartX = 0 // Will be set by mouse event
-  dragStartY = 0
+  dragStartX = e.clientX
+  dragStartY = e.clientY
   dragStartCropX = cropX.value
   dragStartCropY = cropY.value
 
@@ -187,8 +187,8 @@ function onCropDragStart() {
 function onDragMove(e: MouseEvent) {
   if (!isDragging.value || !selectedImage.value) return
 
-  const dx = e.movementX
-  const dy = e.movementY
+  const dx = e.clientX - dragStartX
+  const dy = e.clientY - dragStartY
 
   let newX = dragStartCropX + dx
   let newY = dragStartCropY + dy

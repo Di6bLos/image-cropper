@@ -93,8 +93,8 @@ const props = withDefaults(defineProps<CropOverlayProps>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'drag-start'): void
-  (e: 'resize-start', handle: 'nw' | 'ne' | 'sw' | 'se'): void
+  (e: 'drag-start', event: MouseEvent): void
+  (e: 'resize-start', handle: 'nw' | 'ne' | 'sw' | 'se', event: MouseEvent): void
 }>()
 
 // Overlay wrapper style
@@ -162,10 +162,10 @@ function onWindowMouseDown(e: MouseEvent) {
   emit('drag-start')
 }
 
-// Handle drag - emit with handle position
+// Handle drag - emit with handle position and original event
 function onHandleDragStart(e: MouseEvent, position: string) {
   e.preventDefault()
-  emit('resize-start', position as 'nw' | 'ne' | 'sw' | 'se')
+  emit('resize-start', position as 'nw' | 'ne' | 'sw' | 'se', e)
 }
 </script>
 

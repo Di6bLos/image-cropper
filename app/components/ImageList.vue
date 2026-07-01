@@ -111,6 +111,11 @@ async function onFilesAdded(files: File[]) {
       originalHeight: img.naturalHeight,
     })
   }
+
+  // Auto-select first image if none selected
+  if (!imageStore.hasSelection && imageStore.images.length > 0) {
+    imageStore.selectImage(imageStore.images[0].id)
+  }
 }
 </script>
 
