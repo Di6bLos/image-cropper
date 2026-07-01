@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="process.client"
+    v-if="isMounted"
     class="image-list-item"
     :class="{
       'image-list-item--selected': isSelected,
@@ -81,6 +81,12 @@ export interface ImageListItemProps {
   image: ImageItem
   isSelected?: boolean
 }
+
+// SSR-safe: only render after mount
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
 
 const props = withDefaults(defineProps<ImageListItemProps>(), {
   isSelected: false,

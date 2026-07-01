@@ -83,8 +83,6 @@ function onSelectImage(id: string) {
 
 // Handle files added via drop or picker
 async function onFilesAdded(files: File[]) {
-  const blobRegistry = useBlobRegistry()
-
   for (const file of files) {
     // Create blob URL for the original image
     const blobUrl = blobRegistry.create(file)

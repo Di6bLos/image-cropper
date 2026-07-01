@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="process.client"
+    v-if="isMounted"
     class="crop-overlay"
     :style="overlayStyle"
   >
@@ -68,6 +68,12 @@
 
 <script setup lang="ts">
 import CropHandle from './CropHandle.vue'
+
+// SSR-safe: only render after mount
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
 
 export interface CropOverlayProps {
   /** Image URL to display */
