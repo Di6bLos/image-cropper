@@ -45,6 +45,44 @@ self.addEventListener('message', (event: MessageEvent) => {
       }
       break
 
+    case 'batchEncode':
+      // Encode an image with optional crop region and format/quality settings
+      // bitmap is transferred via transferables
+      if (event.data.bitmap) {
+        const bitmap: ImageBitmap = event.data.bitmap
+        const { id, filename, crop, format, quality } = event.data.payload
+        const outFormat = format || 'jpeg'
+        const outQuality = quality || 90
+
+        try {
+          // Determine source crop region
+          const srcX = crop ? crop.x : 0
+          const srcY = crop ? crop.y : 0
+          const srcW = crop ? crop.width : bitmap.width
+          const srcH = crop ? crop.height : bitmap.height
+
+          // Create canvas sized to crop region
+          const canvas = new OffscreenCanvas(srcW, srcH)
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(bitmap, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
+
+          // CRITICAL: Close bitmap to release GPU memory immediately after drawImage
+          bitmap.close()
+
+          // Encode to blob based on format
+          const blob = await canvas.convertToBlob({
+            type: outFormat === 'png' ? 'image/png' : outFormat === 'webp' ? 'image/webp' : 'image/jpeg',
+            quality: outQuality / 100,
+          })
+
+          // Transfer the blob back to main thread
+          self.postMessage({ type: 'encoded', payload: { id, filename, blob } }, [blob])
+        } catch (err) {
+          self.postMessage({ type: 'encoded', payload: { id, filename, error: String(err) } })
+        }
+      }
+      break
+
     default:
       self.postMessage({ type: 'error', payload: { message: `Unknown message type: ${type}` } })
   }
