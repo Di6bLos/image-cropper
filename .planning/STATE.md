@@ -1,41 +1,41 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: complete
-last_updated: "2026-07-17T21:30:00.000Z"
-progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+milestone_name: MVP
+status: shipped
+last_updated: "2026-07-17"
 ---
 
 # State: Image Cropper
 
 **Project:** Image Cropper
 **Core Value:** Small teams can batch-crop dozens of images to consistent dimensions in minutes, with smart defaults that eliminate repetitive manual work.
-**Current Focus:** Phase 3 COMPLETE — Phase 4 & 5 were pre-completed
+**Milestone Status:** ✅ SHIPPED — v1.0 MVP COMPLETE
 
 ---
 
 ## Current Position
 
-Phase: 03 (AI Detection) — COMPLETE
-**All 5 phases complete.** Milestone v1.0 implementation done.
+**v1.0 MVP — SHIPPED 2026-07-17**
 
-### Progress
+All 5 phases complete. All 29 v1 requirements implemented and verified. Milestone archived to milestones/v1.0-*.
 
-```
-[Phase 1: Foundation          ] 100%
-[Phase 2: Core Cropping       ] 100%
-[Phase 3: AI Detection        ] 100%
-[Phase 4: Batch Processing    ] 100%
-[Phase 5: Export Polish       ] 100%
+### Phase Summary
 
-Overall: 100%
-```
+1. Foundation — Complete (2026-06-30)
+2. Core Cropping — Complete (2026-07-17)
+3. AI Detection — Complete (2026-07-17)
+4. Batch Processing — Complete (2026-07-17)
+5. Export Polish — Complete (2026-07-17)
+
+---
+
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-07-17)
+
+**Core value:** Batch-crop images to consistent dimensions with smart defaults
+**Current focus:** Next milestone planning
 
 ---
 
@@ -43,9 +43,11 @@ Overall: 100%
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Requirements mapped | 29/29 | All v1 requirements assigned to phases |
+| Requirements validated | 29/29 | All v1 requirements shipped |
 | Phases planned | 5 | Coarse granularity |
-| UI phases identified | 1 | Phase 2 (Core Cropping) |
+| Plans completed | 9/9 | |
+| Timeline | 23 days | 2026-06-24 → 2026-07-17 |
+| LOC | ~5,814 | Vue/TS/Sass |
 
 ---
 
@@ -56,9 +58,10 @@ Overall: 100%
 - Nuxt 3 + Vue 3 + Sass + Pinia + Smartcrop.js (lazy-loaded) + JSZip
 - All client-side processing; AI detection in Web Worker
 - Horizontal Layers project structure
-- Coarse granularity (3-5 phases)
+- COOP/COEP headers for cross-origin isolation
+- Memory management via composables (blob registry, canvas pool)
 
-### Phase Structure
+### Phase Structure (v1.0)
 
 1. Foundation — Infrastructure setup, memory patterns, SSR-safe
 2. Core Cropping — Import, preview, crop window, ratios, dark mode
@@ -66,20 +69,20 @@ Overall: 100%
 4. Batch Processing — Worker pool, canvas pooling, progress
 5. Export Polish — Streaming ZIP, format modal, filename sanitization
 
-### Dependencies
+### Tech Debt (v1.0)
 
-- Phase 2 depends on Phase 1 (foundation must be ready)
-- Phase 3 depends on Phase 2 (crop UI needed for AI output)
-- Phase 4 depends on Phase 3 (AI needed before batch optimization)
-- Phase 5 depends on Phase 4 (batch infrastructure needed for export)
+- Phase 2 human verification checkpoint (11 manual visual UX tests)
+- Phase 4 no VERIFICATION.md (VALIDATION.md used instead)
+- useCropWindow composable unused (logic inlined in CropWorkspace)
+- useImageWorker not effectively used (Smartcrop creates own worker)
 
 ---
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T20:26:16.401Z
-**Next action:** User review and approval of roadmap draft
+**Last session:** 2026-07-17
+**Next action:** Start next milestone planning with `/gsd:new-milestone`
 
 ---
 
-*State updated: 2026-06-29*
+*State updated: 2026-07-17 after v1.0 milestone completion*

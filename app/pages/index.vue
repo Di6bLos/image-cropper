@@ -74,14 +74,27 @@ async function triggerBatchExport() {
   }
 
   try {
-    // Process all images
+    // Get current crop settings from store
+    const crop = cropStore.currentCrop
+
+    // Process all images with current crop settings applied uniformly
     const results = await batchProcessor.processBatch(
-      imageStore.images.map((img) => ({
-        id: img.id,
-        blobUrl: img.blobUrl,
-        filename: img.filename,
-      })),
+      imageStore.images.map((img) => {
+        // Use stored crop if this image was the one being cropped
+        const imgCrop = img.id === crop.imageId ? crop : null
+        return {
+          id: img.id,
+          blobUrl: img.blobUrl,
+          filename: img.filename,
+          cropX: imgCrop ? imgCrop.x : 0,
+          cropY: imgCrop ? imgCrop.y : 0,
+          cropWidth: imgCrop ? imgCrop.width : img.originalWidth,
+          cropHeight: imgCrop ? imgCrop.height : img.originalHeight,
+        }
+      }),
       {
+        format: 'jpeg',
+        quality: 90,
         onProgress: (current, total, filename) => {
           batchProgress.value.current = current
           batchProgress.value.total = total
