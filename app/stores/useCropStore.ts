@@ -29,6 +29,14 @@ export interface RatioState {
   pixelHeight: number
 }
 
+export interface CurrentCropState {
+  imageId: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export const useCropStore = defineStore('crop', () => {
   // Initial state
   const ratioState = ref<RatioState>({
@@ -38,6 +46,15 @@ export const useCropStore = defineStore('crop', () => {
     customHeight: 3,
     pixelWidth: 1200,
     pixelHeight: 800,
+  })
+
+  // Current crop window state (for export)
+  const currentCrop = ref<CurrentCropState>({
+    imageId: null,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
   })
 
   /**
@@ -122,6 +139,13 @@ export const useCropStore = defineStore('crop', () => {
   }
 
   /**
+   * Update current crop window state (called from CropWorkspace)
+   */
+  function setCurrentCrop(crop: Partial<CurrentCropState> & { imageId: string }): void {
+    currentCrop.value = { ...currentCrop.value, ...crop }
+  }
+
+  /**
    * Get preset ratio value
    */
   function getPresetRatio(preset: Exclude<RatioPreset, 'custom'>): number {
@@ -131,6 +155,7 @@ export const useCropStore = defineStore('crop', () => {
   return {
     // State (readonly wrapper)
     ratioState: readonly(ratioState),
+    currentCrop: readonly(currentCrop),
 
     // Computed
     effectiveRatio,
@@ -143,6 +168,7 @@ export const useCropStore = defineStore('crop', () => {
     setPixelSize,
     reset,
     getPresetRatio,
+    setCurrentCrop,
 
     // Constants for templates
     PRESET_RATIOS,

@@ -8,7 +8,7 @@
 
 - [x] **Phase 1: Foundation** — Project setup, SSR-safe patterns, worker infrastructure, memory management (completed 2026-06-30)
 - [ ] **Phase 2: Core Cropping** — Import, preview, crop window, ratio presets, dark mode
-- [ ] **Phase 3: AI Detection** — Smartcrop.js integration, lazy loading, center-crop fallback
+- [x] **Phase 3: AI Detection** — Smartcrop.js integration, lazy loading, center-crop fallback (completed 2026-07-17)
 - [ ] **Phase 4: Batch Processing** — Worker pool, canvas pooling, chunked processing with progress
 - [ ] **Phase 5: Export Polish** — Streaming ZIP, format/quality modal, filename sanitization
 
@@ -80,7 +80,7 @@
 
 **Plans:** 1/1 plan in 3 waves
 
-- [ ] 03-ai-detection/03-PLAN.md — Smartcrop.js AI detection with CDN lazy-loading, worker off-thread processing, center-crop fallback
+- [x] 03-ai-detection/03-PLAN.md — Smartcrop.js AI detection with CDN lazy-loading, worker off-thread processing, center-crop fallback
 
 ---
 
@@ -129,9 +129,9 @@
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete    | 2026-06-30 |
 | 2. Core Cropping | 4/4 | Complete    | - |
-| 3. AI Detection | 0/1 | Not started | - |
-| 4. Batch Processing | 0/1 | Not started | - |
-| 5. Export Polish | 0/TBD | Not started | - |
+| 3. AI Detection | 1/1 | Complete    | 2026-07-17 |
+| 4. Batch Processing | 1/1 | Complete    | 2026-07-17 |
+| 5. Export Polish | 1/1 | Complete    | 2026-07-17 |
 
 ---
 

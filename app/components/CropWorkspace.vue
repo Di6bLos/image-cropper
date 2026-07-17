@@ -49,13 +49,7 @@
 
       <!-- Action buttons -->
       <div class="crop-workspace__actions">
-        <button
-          type="button"
-          class="crop-workspace__action-btn"
-          @click="onAutoCrop"
-        >
-          Auto Crop
-        </button>
+        <AutoCropButton :is-processing="isAiProcessing" @click="onAutoCrop" />
         <button
           type="button"
           class="crop-workspace__action-btn crop-workspace__action-btn--primary"
@@ -66,16 +60,27 @@
       </div>
     </div>
   </div>
+
+  <ExportModal />
+  <ToastNotification />
 </template>
 
 <script setup lang="ts">
 import { useImageStore } from '~/stores/useImageStore'
 import { useCropStore } from '~/stores/useCropStore'
+import { useExportModal } from '~/composables/useExportModal'
+import { useSmartcrop } from '~/composables/useSmartcrop'
+import { useToast } from '~/composables/useToast'
 import CropOverlay from './CropOverlay.vue'
 import RatioControls from './RatioControls.vue'
+import ExportModal from './ExportModal.vue'
+import AutoCropButton from './AutoCropButton.vue'
+import ToastNotification from './ToastNotification.vue'
 
 const imageStore = useImageStore()
 const cropStore = useCropStore()
+const { detectCrop } = useSmartcrop()
+const { showFallbackToast, showFailureToast } = useToast()
 
 // Computed: selected image from store
 const selectedImage = computed(() => imageStore.selectedImage)
@@ -154,6 +159,22 @@ function applyRatioConstraint() {
   cropY.value = Math.max(0, centerY - newHeight / 2)
   cropWidth.value = newWidth
   cropHeight.value = newHeight
+
+  // Sync to store for export
+  syncCropToStore()
+}
+
+// Sync current crop state to the store (for export)
+function syncCropToStore() {
+  if (selectedImage.value) {
+    cropStore.setCurrentCrop({
+      imageId: selectedImage.value.id,
+      x: cropX.value,
+      y: cropY.value,
+      width: cropWidth.value,
+      height: cropHeight.value,
+    })
+  }
 }
 
 // Crop state for template
@@ -163,6 +184,11 @@ const cropState = computed(() => ({
   width: cropWidth.value,
   height: cropHeight.value,
 }))
+
+// Watch for crop changes and sync to store
+watch(cropState, () => {
+  syncCropToStore()
+}, { deep: true })
 
 // Drag handling
 const isDragging = ref(false)
@@ -326,9 +352,72 @@ function onResizeEnd() {
   document.removeEventListener('mouseup', onResizeEnd)
 }
 
-// Cleanup on unmount
+// AI processing state
+const isAiProcessing = ref(false)
+
+/**
+ * Center crop fallback — positions crop at center of image
+ */
+function centerCrop() {
+  if (!selectedImage.value) return
+  const img = selectedImage.value
+  const cropW = img.originalWidth * 0.8
+  const cropH = img.originalHeight * 0.8
+  cropX.value = img.originalWidth * 0.1
+  cropY.value = img.originalHeight * 0.1
+  cropWidth.value = cropW
+  cropHeight.value = cropH
+  syncCropToStore()
+}
+
+/**
+ * Auto crop handler — triggers AI subject detection
+ */
+async function onAutoCrop() {
+  if (!selectedImage.value || isAiProcessing.value) return
+
+  isAiProcessing.value = true
+  try {
+    const img = selectedImage.value
+    const result = await detectCrop(
+      img.blobUrl,
+      cropWidth.value,
+      cropHeight.value,
+      img.originalWidth,
+      img.originalHeight
+    )
+    cropX.value = result.x
+    cropY.value = result.y
+    cropWidth.value = result.width
+    cropHeight.value = result.height
+    syncCropToStore()
+  } catch {
+    showFailureToast()
+    centerCrop()
+  } finally {
+    isAiProcessing.value = false
+  }
+}
+
+// Keyboard shortcut: 'A' triggers auto crop when no input is focused
+function onKeydown(e: KeyboardEvent) {
+  const target = e.target as HTMLElement
+  const tag = target.tagName.toLowerCase()
+  if (tag === 'input' || tag === 'textarea' || target.isContentEditable) return
+  if (e.key === 'A' || e.key === 'a') {
+    onAutoCrop()
+  }
+}
+
+onMounted(() => {
+  if (process.client) {
+    window.addEventListener('keydown', onKeydown)
+  }
+})
+
 onUnmounted(() => {
   if (process.client) {
+    window.removeEventListener('keydown', onKeydown)
     document.removeEventListener('mousemove', onDragMove)
     document.removeEventListener('mouseup', onDragEnd)
     document.removeEventListener('mousemove', onResizeMove)
@@ -336,17 +425,12 @@ onUnmounted(() => {
   }
 })
 
-// Placeholder handlers for Phase 3 and Phase 5
-function onAutoCrop() {
-  if (process.client) {
-    alert('AI cropping coming in Phase 3')
-  }
-}
-
+/**
+ * Open the export modal with format/quality options
+ */
 function onExport() {
-  if (process.client) {
-    alert('Export coming in Phase 5')
-  }
+  const { show } = useExportModal()
+  show()
 }
 </script>
 

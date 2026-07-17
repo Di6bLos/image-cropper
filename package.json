@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
+    "jszip": "^3.10.1",
     "nuxt": "^4.4.8",
     "nuxt-security": "^2.5.1",
     "sass": "^1.101.0",
