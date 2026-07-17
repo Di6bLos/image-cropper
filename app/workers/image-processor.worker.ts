@@ -64,6 +64,45 @@ self.addEventListener('message', async (event: MessageEvent) => {
       break
     }
 
+    case 'batchEncode': {
+      const { bitmap, id, filename, crop, format, quality } = payload as {
+        bitmap: ImageBitmap
+        id: string
+        filename: string
+        crop?: { x: number; y: number; width: number; height: number }
+        format: 'jpeg' | 'png' | 'webp'
+        quality: number
+      }
+
+      try {
+        const srcX = crop ? crop.x : 0
+        const srcY = crop ? crop.y : 0
+        const srcW = crop ? crop.width : bitmap.width
+        const srcH = crop ? crop.height : bitmap.height
+
+        const canvas = new OffscreenCanvas(srcW, srcH)
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(bitmap, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
+        bitmap.close()
+
+        const blob = await canvas.convertToBlob({
+          type: format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg',
+          quality: quality / 100,
+        })
+
+        self.postMessage({
+          type: 'encoded',
+          payload: { id, filename, blob },
+        })
+      } catch (err) {
+        self.postMessage({
+          type: 'encoded',
+          payload: { id, filename, error: String(err) },
+        })
+      }
+      break
+    }
+
     default:
       // Unknown message type — ignore
       break

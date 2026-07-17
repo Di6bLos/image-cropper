@@ -19,7 +19,7 @@ console.log('[ImageProcessorWorker] Initialized and ready')
  * Handle incoming messages from the main thread
  * @param event - The message event containing data and transferables
  */
-self.addEventListener('message', (event: MessageEvent) => {
+self.addEventListener('message', async (event: MessageEvent) => {
   const { type, payload, transferables } = event.data
 
   switch (type) {
@@ -66,19 +66,19 @@ self.addEventListener('message', (event: MessageEvent) => {
           const ctx = canvas.getContext('2d')
           ctx.drawImage(bitmap, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
 
-          // CRITICAL: Close bitmap to release GPU memory immediately after drawImage
-          bitmap.close()
-
           // Encode to blob based on format
           const blob = await canvas.convertToBlob({
             type: outFormat === 'png' ? 'image/png' : outFormat === 'webp' ? 'image/webp' : 'image/jpeg',
             quality: outQuality / 100,
           })
 
-          // Transfer the blob back to main thread
-          self.postMessage({ type: 'encoded', payload: { id, filename, blob } }, [blob])
+          // Blob is not transferable — send without transfer list
+          self.postMessage({ type: 'encoded', payload: { id, filename, blob } })
         } catch (err) {
           self.postMessage({ type: 'encoded', payload: { id, filename, error: String(err) } })
+        } finally {
+          // CRITICAL: Release GPU memory regardless of success or failure
+          bitmap.close()
         }
       }
       break

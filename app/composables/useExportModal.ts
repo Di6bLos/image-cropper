@@ -58,8 +58,8 @@ export function useExportModal() {
 
   return {
     isOpen: readonly(isOpen),
-    options: readonly(options),
-    isExporting: readonly(isExporting),
+    options,
+    isExporting,
     show,
     hide,
     getOptions,

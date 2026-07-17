@@ -172,12 +172,12 @@ export function useBatchProcessor() {
                 type: 'batchEncode',
                 payload: {
                   id: item.id,
+                  bitmap,
                   filename: item.filename,
                   crop,
                   format: options.format || 'jpeg',
                   quality: options.quality || 90,
                 },
-                transferables: [bitmap],
               },
               [bitmap]
             )

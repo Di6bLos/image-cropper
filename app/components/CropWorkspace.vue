@@ -177,11 +177,6 @@ function syncCropToStore() {
   }
 }
 
-// Watch for crop changes and sync to store
-watch(cropState, () => {
-  syncCropToStore()
-}, { deep: true })
-
 // Crop state for template
 const cropState = computed(() => ({
   x: cropX.value,
@@ -189,6 +184,11 @@ const cropState = computed(() => ({
   width: cropWidth.value,
   height: cropHeight.value,
 }))
+
+// Watch for crop changes and sync to store
+watch(cropState, () => {
+  syncCropToStore()
+}, { deep: true })
 
 // Drag handling
 const isDragging = ref(false)
