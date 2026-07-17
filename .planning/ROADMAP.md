@@ -78,7 +78,9 @@
 4. If AI detection fails or is unavailable, center-crop is used as fallback
 5. AI processing runs in Web Worker (off main thread) with no UI freeze
 
-**Plans:** TBD
+**Plans:** 1/1 plan in 3 waves
+
+- [ ] 03-ai-detection/03-PLAN.md — Smartcrop.js AI detection with CDN lazy-loading, worker off-thread processing, center-crop fallback
 
 ---
 
@@ -96,7 +98,9 @@
 4. Canvas elements are pooled and reused across batch operations (no accumulation)
 5. ImageBitmap objects are properly closed after transfer to workers (memory stable)
 
-**Plans:** TBD
+**Plans:** 1/1 plan in 3 waves
+
+- [ ] 04-batch-processing/04-PLAN.md — Worker pool, export pipeline, batch progress UI, memory safety
 
 ---
 
@@ -124,10 +128,10 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete    | 2026-06-30 |
-| 2. Core Cropping | 0/4 | Not started | - |
-| 3. AI Detection | 0/5 | Not started | - |
-| 4. Batch Processing | 0/5 | Not started | - |
-| 5. Export Polish | 0/6 | Not started | - |
+| 2. Core Cropping | 4/4 | Complete    | - |
+| 3. AI Detection | 0/1 | Not started | - |
+| 4. Batch Processing | 0/1 | Not started | - |
+| 5. Export Polish | 0/TBD | Not started | - |
 
 ---
 
@@ -154,7 +158,7 @@ All 29 v1 requirements mapped to phases:
 | UIUX-01 | Phase 2 | EXPT-06 | Phase 5 |
 | UIUX-02 | Phase 2 | EXPT-07 | Phase 5 |
 
-**Coverage:** 29/29 requirements mapped ✓
+**Coverage:** 29/29 requirements mapped
 
 ---
 
