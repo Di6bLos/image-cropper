@@ -1,0 +1,22 @@
+@use './variables' as *;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: $color-bg;
+  color: $color-text;
+}
+
+button {
+  font: inherit;
+}
