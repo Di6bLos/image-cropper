@@ -93,7 +93,7 @@ function resetCropCenter() {
       :disabled="!imageStore.images.length"
       @click="resetCropCenter"
     >
-      Reset crop center
+      Reset all image crops
     </button>
   </section>
 </template>

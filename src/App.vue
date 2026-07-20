@@ -36,7 +36,6 @@ watch(
         <div class="app__panel">
           <RatioControls />
           <ExportPanel />
-          <DropZone class="app__panel-dropzone" />
         </div>
       </template>
       <div v-else class="app__empty">
@@ -96,10 +95,6 @@ watch(
   gap: $space-lg;
   overflow-y: auto;
   background: $color-surface;
-}
-
-.app__panel-dropzone {
-  padding: $space-md;
 }
 
 .app__empty {

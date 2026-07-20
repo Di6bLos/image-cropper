@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useImageStore } from '../stores/useImageStore'
 import ImageGridItem from './ImageGridItem.vue'
+import DropZone from './DropZone.vue'
 
 const imageStore = useImageStore()
 </script>
@@ -18,16 +19,19 @@ const imageStore = useImageStore()
         Clear all
       </button>
     </div>
-    <ul class="image-grid__list">
-      <ImageGridItem
-        v-for="image in imageStore.images"
-        :key="image.id"
-        :image="image"
-        :active="image.id === imageStore.activeImageId"
-        @select="imageStore.setActiveImage(image.id)"
-        @remove="imageStore.removeImage(image.id)"
-      />
-    </ul>
+    <div class="image-grid__body">
+      <ul class="image-grid__list">
+        <ImageGridItem
+          v-for="image in imageStore.images"
+          :key="image.id"
+          :image="image"
+          :active="image.id === imageStore.activeImageId"
+          @select="imageStore.setActiveImage(image.id)"
+          @remove="imageStore.removeImage(image.id)"
+        />
+      </ul>
+      <DropZone class="image-grid__dropzone"/>
+    </div>
   </aside>
 </template>
 
@@ -66,14 +70,31 @@ const imageStore = useImageStore()
   }
 }
 
-.image-grid__list {
+.image-grid__body {
+  position: relative;
   flex: 1;
+  min-height: 0;
+}
+
+.image-grid__list {
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
   list-style: none;
   margin: 0;
   padding: $space-xs;
+  padding-bottom: 12.5rem;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.image-grid__dropzone {
+  position: absolute;
+  left: $space-xs;
+  right: $space-xs;
+  bottom: $space-xs;
+  background: $color-surface;
+  box-shadow: 0 -8px 12px -4px rgba(0, 0, 0, 0.08);
 }
 </style>
