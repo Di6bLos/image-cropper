@@ -1,65 +1,49 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import RatioControls from '../../src/components/RatioControls.vue'
+import { useSettingsStore, RATIO_PRESETS } from '../../src/stores/useSettingsStore'
+import { useImageStore } from '../../src/stores/useImageStore'
 
 describe('RatioControls', () => {
-  it('has correct preset ratio values', () => {
-    const presets = {
-      '16:9': 16 / 9,
-      '3:2': 3 / 2,
-      '1:1': 1,
-      '2:3': 2 / 3,
-    }
-
-    expect(presets['16:9']).toBeCloseTo(1.778, 3)
-    expect(presets['3:2']).toBe(1.5)
-    expect(presets['1:1']).toBe(1)
-    expect(presets['2:3']).toBeCloseTo(0.667, 3)
+  beforeEach(() => {
+    setActivePinia(createPinia())
   })
 
-  it('validates positive integers only', () => {
-    const validatePositive = (value: number) => value > 0 && value <= 10000 && Number.isInteger(value)
-
-    expect(validatePositive(4)).toBe(true)
-    expect(validatePositive(3)).toBe(true)
-    expect(validatePositive(0)).toBe(false)
-    expect(validatePositive(-1)).toBe(false)
-    expect(validatePositive(1.5)).toBe(false)
-    expect(validatePositive(10001)).toBe(false)
+  it('renders a button for every ratio preset', () => {
+    const wrapper = mount(RatioControls)
+    expect(wrapper.findAll('.ratio-controls__preset')).toHaveLength(RATIO_PRESETS.length)
   })
 
-  it('mode switching works correctly', () => {
-    type Mode = 'ratio' | 'pixel'
-    let currentMode: Mode = 'ratio'
-
-    const setMode = (mode: Mode) => {
-      currentMode = mode
-    }
-
-    setMode('pixel')
-    expect(currentMode).toBe('pixel')
-
-    setMode('ratio')
-    expect(currentMode).toBe('ratio')
+  it('selects a preset on click', async () => {
+    const wrapper = mount(RatioControls)
+    const settings = useSettingsStore()
+    await wrapper.findAll('.ratio-controls__preset')[2].trigger('click')
+    expect(settings.mode).toBe('preset')
+    expect(settings.presetIndex).toBe(2)
   })
 
-  it('effectiveRatio computed correctly', () => {
-    const computeEffectiveRatio = (mode: string, preset: string, customW: number, customH: number, pixelW: number, pixelH: number) => {
-      if (mode === 'pixel') {
-        return pixelW / pixelH
-      }
-      if (preset === 'custom') {
-        return customW / customH
-      }
-      const presets: Record<string, number> = {
-        '16:9': 16 / 9,
-        '3:2': 3 / 2,
-        '1:1': 1,
-        '2:3': 2 / 3,
-      }
-      return presets[preset]
-    }
+  it('disables "apply to all" when there are no images', () => {
+    const wrapper = mount(RatioControls)
+    expect(wrapper.find('.ratio-controls__apply').attributes('disabled')).toBeDefined()
+  })
 
-    expect(computeEffectiveRatio('ratio', '1:1', 0, 0, 0, 0)).toBe(1)
-    expect(computeEffectiveRatio('ratio', 'custom', 4, 3, 0, 0)).toBeCloseTo(1.333, 3)
-    expect(computeEffectiveRatio('pixel', '', 0, 0, 1920, 1080)).toBeCloseTo(1.778, 3)
+  it('enables "apply to all" once images are imported', async () => {
+    const wrapper = mount(RatioControls)
+    const images = useImageStore()
+    images.addImages([
+      {
+        id: '1',
+        file: new File([], 'a.png'),
+        name: 'a.png',
+        url: 'blob:a',
+        naturalWidth: 100,
+        naturalHeight: 100,
+        cropRect: null,
+        status: 'ready',
+      },
+    ])
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.ratio-controls__apply').attributes('disabled')).toBeUndefined()
   })
 })
