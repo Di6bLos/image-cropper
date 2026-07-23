@@ -3,17 +3,33 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useImageStore } from '../stores/useImageStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { getCenteredCropRect, panCropRect, resizeCropRect } from '../composables/useCropEngine'
+import { runAiCrop } from '../composables/useAiCrop'
+import { useToast } from '../composables/useToast'
 import type { CropRect } from '../types/image'
 import CropHandle from './CropHandle.vue'
 
 const imageStore = useImageStore()
 const settingsStore = useSettingsStore()
+const { show } = useToast()
 
 const imageRef = ref<HTMLImageElement | null>(null)
 const displayScale = ref(1)
 const imageOffset = ref({ left: 0, top: 0 })
 
 const activeImage = computed(() => imageStore.activeImage)
+const isAiCropping = computed(() => activeImage.value?.aiCropStatus === 'analyzing')
+
+async function aiCropActive() {
+  const image = activeImage.value
+  if (!image || isAiCropping.value) return
+
+  const { failed } = await runAiCrop([image], settingsStore.ratio)
+  if (failed === 0) {
+    show('AI-cropped image', 'success')
+  } else {
+    show('AI crop failed', 'error')
+  }
+}
 
 function updateScale() {
   const img = imageRef.value
@@ -110,7 +126,17 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
     <template v-if="activeImage">
       <div class="crop-workspace__toolbar">
         <span class="crop-workspace__filename">{{ activeImage.name }}</span>
-        <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset crop</button>
+        <div class="crop-workspace__actions">
+          <button
+            type="button"
+            class="crop-workspace__ai-crop"
+            :disabled="isAiCropping"
+            @click="aiCropActive"
+          >
+            {{ isAiCropping ? 'Analyzing…' : 'AI Crop' }}
+          </button>
+          <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset Crop</button>
+        </div>
       </div>
       <div class="crop-workspace__stage">
         <img
@@ -166,6 +192,11 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
   white-space: nowrap;
 }
 
+.crop-workspace__actions {
+  display: flex;
+  gap: $space-xs;
+}
+
 .crop-workspace__reset {
   padding: $space-xs $space-sm;
   border: 1px solid $color-border;
@@ -175,6 +206,23 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
 
   &:hover {
     background: $color-surface-hover;
+  }
+}
+
+.crop-workspace__ai-crop {
+  padding: $space-xs $space-sm;
+	border: 1px solid $color-border;
+	border-radius: $radius-sm;
+	background: $color-surface;
+	cursor: pointer;
+
+  &:hover:not(:disabled) {
+	background: $color-surface-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
