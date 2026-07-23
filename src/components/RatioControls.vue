@@ -121,6 +121,7 @@ function resetCropCenter() {
 
 .ratio-controls__preset {
   padding: $space-xs $space-sm;
+  margin-bottom: $space-sm;
   border: 1px solid $color-border;
   border-radius: $radius-sm;
   background: $color-surface;

@@ -60,7 +60,7 @@ export async function runAiCrop(images: ImportedImage[], ratio: number, options:
     } catch (error) {
       imageStore.setAiCropStatus(image.id, 'error')
       failed += 1
-      const message = error instanceof Error ? error.message : 'AI crop failed'
+      const message = error instanceof Error ? error.message : 'AI crop '
       console.error(`AI crop failed for ${image.name}:`, error)
       options.onImageError?.(image.id, message)
     }
