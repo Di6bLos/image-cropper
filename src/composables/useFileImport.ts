@@ -33,6 +33,8 @@ export function useFileImport() {
           naturalHeight: height,
           cropRect: getCenteredCropRect(width, height, settingsStore.ratio),
           status: 'ready',
+          focalPoint: null,
+          aiCropStatus: 'idle',
         })
       } catch {
         rejected.push(file.name)

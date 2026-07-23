@@ -7,6 +7,8 @@ export interface CropRect {
 
 export type ImageStatus = 'ready' | 'exporting' | 'done' | 'error'
 
+export type AiCropStatus = 'idle' | 'analyzing' | 'done' | 'error'
+
 export interface ImportedImage {
   id: string
   file: File
@@ -16,4 +18,6 @@ export interface ImportedImage {
   naturalHeight: number
   cropRect: CropRect | null
   status: ImageStatus
+  focalPoint: { x: number; y: number } | null
+  aiCropStatus: AiCropStatus
 }
