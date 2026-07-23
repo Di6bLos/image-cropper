@@ -17,7 +17,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const customRatioHeight = ref(1)
   const customPxWidth = ref(1200)
   const customPxHeight = ref(1200)
-  const outputFormat = ref<OutputFormat>('image/jpeg')
+  const outputFormat = ref<OutputFormat>('image/webp')
   const quality = ref(1.0)
 
   const ratio = computed(() => {

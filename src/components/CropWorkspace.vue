@@ -4,6 +4,8 @@ import { useImageStore } from '../stores/useImageStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { getCenteredCropRect, panCropRect, resizeCropRect } from '../composables/useCropEngine'
 import { runAiCrop } from '../composables/useAiCrop'
+import { exportImages } from '../composables/useImageExport'
+import { downloadBlob } from '../composables/useZipExport'
 import { useToast } from '../composables/useToast'
 import type { CropRect } from '../types/image'
 import CropHandle from './CropHandle.vue'
@@ -18,6 +20,7 @@ const imageOffset = ref({ left: 0, top: 0 })
 
 const activeImage = computed(() => imageStore.activeImage)
 const isAiCropping = computed(() => activeImage.value?.aiCropStatus === 'analyzing')
+const isExporting = ref(false)
 
 async function aiCropActive() {
   const image = activeImage.value
@@ -28,6 +31,32 @@ async function aiCropActive() {
     show('AI-cropped image', 'success')
   } else {
     show('AI crop failed', 'error')
+  }
+}
+
+async function exportActive() {
+  const image = activeImage.value
+  if (!image || isExporting.value) return
+
+  isExporting.value = true
+  imageStore.setStatus(image.id, 'exporting')
+  try {
+    const [file] = await exportImages([image], {
+      format: settingsStore.outputFormat,
+      quality: settingsStore.quality,
+      outputSize: settingsStore.outputSize,
+    })
+
+    if (file) {
+      downloadBlob(file.blob, file.name)
+      imageStore.setStatus(image.id, 'done')
+      show('Exported image', 'success')
+    } else {
+      imageStore.setStatus(image.id, 'error')
+      show('Export failed', 'error')
+    }
+  } finally {
+    isExporting.value = false
   }
 }
 
@@ -136,6 +165,14 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
             {{ isAiCropping ? 'Analyzing…' : 'AI Crop' }}
           </button>
           <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset Crop</button>
+          <button
+            type="button"
+            class="crop-workspace__export"
+            :disabled="isExporting"
+            @click="exportActive"
+          >
+            {{ isExporting ? 'Exporting…' : 'Export' }}
+          </button>
         </div>
       </div>
       <div class="crop-workspace__stage">
@@ -206,6 +243,23 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
 
   &:hover {
     background: $color-surface-hover;
+  }
+}
+
+.crop-workspace__export {
+  padding: $space-xs $space-sm;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-surface-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
