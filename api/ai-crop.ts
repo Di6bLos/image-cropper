@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { GEMINI_MODEL, GeminiParseError, buildPrompt, parseGeminiResponse } from './_lib/gemini'
+import { GEMINI_MODEL, GeminiParseError, buildPrompt, parseGeminiResponse } from './_lib/gemini.js'
 
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
