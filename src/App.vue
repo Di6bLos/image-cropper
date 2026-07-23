@@ -2,11 +2,12 @@
 import { watch } from 'vue'
 import { useImageStore } from './stores/useImageStore'
 import { useSettingsStore } from './stores/useSettingsStore'
-import { getCenteredCropRect } from './composables/useCropEngine'
+import { getCenteredCropRect, getFocalCropRect } from './composables/useCropEngine'
 import DropZone from './components/DropZone.vue'
 import ImageGrid from './components/ImageGrid.vue'
 import CropWorkspace from './components/CropWorkspace.vue'
 import RatioControls from './components/RatioControls.vue'
+import AiCropPanel from './components/AiCropPanel.vue'
 import ExportPanel from './components/ExportPanel.vue'
 import ToastNotification from './components/ToastNotification.vue'
 
@@ -14,11 +15,16 @@ const imageStore = useImageStore()
 const settingsStore = useSettingsStore()
 
 // Selecting a ratio applies it to the whole batch by default; per-image pan/zoom
-// adjustments are then layered on top until the ratio changes again.
+// adjustments are then layered on top until the ratio changes again. Images with an
+// AI-detected focal point stay centered on that point instead of the geometric center.
 watch(
   () => settingsStore.ratio,
   (ratio) => {
-    imageStore.applyToAll((image) => getCenteredCropRect(image.naturalWidth, image.naturalHeight, ratio))
+    imageStore.applyToAll((image) =>
+      image.focalPoint
+        ? getFocalCropRect(image.naturalWidth, image.naturalHeight, ratio, image.focalPoint.x, image.focalPoint.y)
+        : getCenteredCropRect(image.naturalWidth, image.naturalHeight, ratio),
+    )
   },
 )
 </script>
@@ -35,6 +41,7 @@ watch(
         <CropWorkspace class="app__workspace" />
         <div class="app__panel">
           <RatioControls />
+          <AiCropPanel />
           <ExportPanel />
         </div>
       </template>

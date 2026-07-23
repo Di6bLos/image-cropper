@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { CropRect, ImageStatus, ImportedImage } from '../types/image'
+import type { AiCropStatus, CropRect, ImageStatus, ImportedImage } from '../types/image'
 import { revokeObjectUrl } from '../composables/useObjectUrls'
 
 export const useImageStore = defineStore('images', () => {
@@ -52,6 +52,23 @@ export const useImageStore = defineStore('images', () => {
     })
   }
 
+  function setFocalPoint(id: string, point: { x: number; y: number } | null) {
+    const image = images.value.find((img) => img.id === id)
+    if (image) image.focalPoint = point
+  }
+
+  function setAiCropStatus(id: string, status: AiCropStatus) {
+    const image = images.value.find((img) => img.id === id)
+    if (image) image.aiCropStatus = status
+  }
+
+  function clearFocalPoints() {
+    images.value.forEach((img) => {
+      img.focalPoint = null
+      img.aiCropStatus = 'idle'
+    })
+  }
+
   return {
     images,
     activeImageId,
@@ -63,5 +80,8 @@ export const useImageStore = defineStore('images', () => {
     setCropRect,
     setStatus,
     applyToAll,
+    setFocalPoint,
+    setAiCropStatus,
+    clearFocalPoints,
   }
 })

@@ -15,6 +15,7 @@ function selectPreset(index: number) {
 
 function resetCropCenter() {
   const ratio = settingsStore.ratio
+  imageStore.clearFocalPoints()
   imageStore.applyToAll((image) => getCenteredCropRect(image.naturalWidth, image.naturalHeight, ratio))
   show('Crop reset to center on all images', 'success')
 }

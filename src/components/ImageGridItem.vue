@@ -13,6 +13,12 @@ defineEmits<{ select: []; remove: [] }>()
     @click="$emit('select')"
   >
     <img :src="image.url" :alt="image.name" class="image-grid-item__thumb" />
+    <span
+      v-if="image.aiCropStatus !== 'idle'"
+      class="image-grid-item__ai-status"
+      :class="`image-grid-item__ai-status--${image.aiCropStatus}`"
+      :title="`AI crop: ${image.aiCropStatus}`"
+    />
     <span class="image-grid-item__name">{{ image.name }}</span>
     <span
       v-if="image.status !== 'ready'"
@@ -71,6 +77,25 @@ defineEmits<{ select: []; remove: [] }>()
 
   &--exporting {
     background: $color-warning;
+  }
+
+  &--done {
+    background: $color-success;
+  }
+
+  &--error {
+    background: $color-danger;
+  }
+}
+
+.image-grid-item__ai-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--analyzing {
+    background: $color-primary;
   }
 
   &--done {

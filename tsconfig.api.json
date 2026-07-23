@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.api.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Vercel's Node.js runtime executes these functions under Node's native ESM loader
+       (package.json has "type": "module"), not a bundler — it does NOT resolve extensionless
+       relative imports. moduleResolution must be nodenext so vue-tsc catches missing
+       extensions locally instead of only failing at runtime with ERR_MODULE_NOT_FOUND. */
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["api/**/*.ts"]
+}
