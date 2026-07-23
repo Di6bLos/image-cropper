@@ -46,7 +46,7 @@ async function runAll() {
     </button>
 
     <p class="ai-crop-panel__hint">
-      Sends each image to Google Gemini to find the main subject and re-center the crop around it.
+      Have Gemini find the best view.
     </p>
 
     <div v-if="isRunning" class="ai-crop-panel__progress">
