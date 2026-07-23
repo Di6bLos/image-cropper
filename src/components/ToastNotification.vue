@@ -25,10 +25,12 @@ const { toasts, dismiss } = useToast()
 
 .toast-stack {
   position: fixed;
-  bottom: $space-lg;
-  right: $space-lg;
+  top: $space-lg;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: $space-xs;
   z-index: 1000;
 }

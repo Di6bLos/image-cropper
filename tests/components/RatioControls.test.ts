@@ -41,6 +41,8 @@ describe('RatioControls', () => {
         naturalHeight: 100,
         cropRect: null,
         status: 'ready',
+        focalPoint: null,
+        aiCropStatus: 'idle',
       },
     ])
     await wrapper.vm.$nextTick()

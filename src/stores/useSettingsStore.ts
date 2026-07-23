@@ -5,10 +5,9 @@ import type { OutputFormat } from '../types/export'
 
 export const RATIO_PRESETS: RatioPreset[] = [
   { label: '1:1', width: 1, height: 1 },
-  { label: '4:3', width: 4, height: 3 },
+  { label: '2:3', width: 2, height: 3 },
   { label: '3:2', width: 3, height: 2 },
   { label: '16:9', width: 16, height: 9 },
-  { label: '9:16', width: 9, height: 16 },
 ]
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -19,7 +18,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const customPxWidth = ref(1200)
   const customPxHeight = ref(1200)
   const outputFormat = ref<OutputFormat>('image/jpeg')
-  const quality = ref(0.92)
+  const quality = ref(1.0)
 
   const ratio = computed(() => {
     if (mode.value === 'preset') {

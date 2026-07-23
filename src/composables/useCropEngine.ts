@@ -28,6 +28,24 @@ export function getCenteredCropRect(naturalWidth: number, naturalHeight: number,
   }
 }
 
+/**
+ * Largest ratio-matching crop rect (same size as `getCenteredCropRect`), centered on
+ * (focalX, focalY) in natural-image pixels instead of the image's geometric center,
+ * clamped to the image bounds.
+ */
+export function getFocalCropRect(
+  naturalWidth: number,
+  naturalHeight: number,
+  ratio: number,
+  focalX: number,
+  focalY: number,
+): CropRect {
+  const { width, height } = getCenteredCropRect(naturalWidth, naturalHeight, ratio)
+  const x = clamp(focalX - width / 2, 0, naturalWidth - width)
+  const y = clamp(focalY - height / 2, 0, naturalHeight - height)
+  return { x, y, width, height }
+}
+
 /** Moves a crop rect by (dx, dy) in natural-image pixels, clamped to the image bounds. */
 export function panCropRect(rect: CropRect, dx: number, dy: number, naturalWidth: number, naturalHeight: number): CropRect {
   const maxX = Math.max(naturalWidth - rect.width, 0)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getCenteredCropRect, panCropRect, resizeCropRect } from '../../src/composables/useCropEngine'
+import { getCenteredCropRect, getFocalCropRect, panCropRect, resizeCropRect } from '../../src/composables/useCropEngine'
 
 describe('getCenteredCropRect', () => {
   it('centers a crop for a wide image against a square ratio', () => {
@@ -12,6 +12,26 @@ describe('getCenteredCropRect', () => {
 
   it('fills the entire image when the ratio matches exactly', () => {
     expect(getCenteredCropRect(400, 300, 4 / 3)).toEqual({ x: 0, y: 0, width: 400, height: 300 })
+  })
+})
+
+describe('getFocalCropRect', () => {
+  it('matches getCenteredCropRect when the focal point is the image center', () => {
+    const centered = getCenteredCropRect(200, 100, 1)
+    expect(getFocalCropRect(200, 100, 1, 100, 50)).toEqual(centered)
+  })
+
+  it('centers the crop on an off-center focal point', () => {
+    expect(getFocalCropRect(200, 100, 1, 20, 50)).toEqual({ x: 0, y: 0, width: 100, height: 100 })
+  })
+
+  it('clamps to the image bounds when the focal point is near a corner', () => {
+    const rect = getFocalCropRect(200, 100, 1, 195, 98)
+    expect(rect.x).toBeLessThanOrEqual(200 - rect.width)
+    expect(rect.y).toBeLessThanOrEqual(100 - rect.height)
+    expect(rect.x).toBeGreaterThanOrEqual(0)
+    expect(rect.y).toBeGreaterThanOrEqual(0)
+    expect(rect).toEqual({ x: 100, y: 0, width: 100, height: 100 })
   })
 })
 
