@@ -1,7 +1,16 @@
 import { useImageStore } from '../stores/useImageStore'
 import { getFocalCropRect } from './useCropEngine'
 import { downscaleToBase64 } from './useImageDownscale'
+import { createRateLimiter } from '../lib/rateLimiter'
 import type { ImportedImage } from '../types/image'
+
+/** Gemini call cap: 5 requests per rolling 60 seconds. */
+const AI_CROP_MAX_PER_MINUTE = 5
+const AI_CROP_WINDOW_MS = 60_000
+/** Backoff for a slipped 429: 1s, 2s, 4s across up to 3 retries. */
+const AI_CROP_MAX_RETRIES = 3
+const AI_CROP_BACKOFF_BASE_MS = 1000
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 
 export interface AiCropOptions {
   onProgress?: (completed: number, total: number) => void
@@ -22,6 +31,7 @@ interface AiCropResponse {
 
 export async function runAiCrop(images: ImportedImage[], ratio: number, options: AiCropOptions = {}): Promise<AiCropSummary> {
   const imageStore = useImageStore()
+  const limiter = createRateLimiter(AI_CROP_MAX_PER_MINUTE, AI_CROP_WINDOW_MS)
   const total = images.length
   let completed = 0
   let succeeded = 0
@@ -33,17 +43,7 @@ export async function runAiCrop(images: ImportedImage[], ratio: number, options:
 
     try {
       const { data, mimeType } = await downscaleToBase64(image.file)
-      const response = await fetch('/api/ai-crop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: data, mimeType }),
-      })
-
-      if (!response.ok) {
-        throw new Error(await messageForResponse(response))
-      }
-
-      const { focalX, focalY } = (await response.json()) as AiCropResponse
+      const { focalX, focalY } = await fetchFocalPoint(limiter, data, mimeType)
       const focalPoint = {
         x: focalX * image.naturalWidth,
         y: focalY * image.naturalHeight,
@@ -70,6 +70,39 @@ export async function runAiCrop(images: ImportedImage[], ratio: number, options:
   }
 
   return { succeeded, failed }
+}
+
+/**
+ * Acquires a rate-limit slot, then POSTs the downscaled image to /api/ai-crop.
+ * On a 429 (Gemini upstream rate limit) retries with exponential backoff,
+ * re-acquiring a slot before each attempt. Other non-ok responses throw the
+ * server-supplied message.
+ */
+async function fetchFocalPoint(limiter: { acquire: () => Promise<void> }, data: string, mimeType: string): Promise<AiCropResponse> {
+  let attempt = 0
+  for (;;) {
+    await limiter.acquire()
+    const response = await fetch('/api/ai-crop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: data, mimeType }),
+    })
+
+    if (response.status === 429) {
+      if (attempt >= AI_CROP_MAX_RETRIES) {
+        throw new Error('Rate limited by Gemini — try again shortly')
+      }
+      await sleep(AI_CROP_BACKOFF_BASE_MS * 2 ** attempt)
+      attempt += 1
+      continue
+    }
+
+    if (!response.ok) {
+      throw new Error(await messageForResponse(response))
+    }
+
+    return (await response.json()) as AiCropResponse
+  }
 }
 
 async function messageForResponse(response: Response): Promise<string> {

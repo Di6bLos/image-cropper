@@ -70,6 +70,12 @@ back to `getCenteredCropRect`. Per-image pan/zoom then layers on top until the r
    size as a ratio crop, just recentered, not a tight zoom to the subject.
 5. `GEMINI_MODEL` in `api/_lib/gemini.ts` is a name that has changed before (flash-lite models get
    retired) — re-verify against `ai.google.dev` docs before assuming it's current.
+6. Rate limiting is **client-side only**: `runAiCrop` wraps each `/api/ai-crop` call in a
+   `createRateLimiter(5, 60_000)` sliding window (`src/lib/rateLimiter.ts`) so no more than 5
+   Gemini calls happen per rolling 60s. A slipped `429` from Gemini is retried with exponential
+   backoff (1s/2s/4s, up to 3 retries) inside `fetchFocalPoint` before failing the image. The
+   serverless function stays stateless — no shared counter across invocations — so the endpoint
+   itself is not protected from direct (non-UI) callers.
 
 ### Export flow
 
