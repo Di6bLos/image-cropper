@@ -22,6 +22,7 @@ when a user does each of the main things the app supports.
 - [How the app is wired up](#how-the-app-is-wired-up)
 - [Data flow walkthroughs](#data-flow-walkthroughs)
 - [Key concepts to understand](#key-concepts-to-understand)
+- [Crop & image quality](#crop--image-quality)
 - [Getting started](#getting-started)
 - [Testing](#testing)
 - [Deployment](#deployment)
@@ -321,6 +322,63 @@ Both stores use the function-style `defineStore('id', () => { ... return {...} }
 than the options-style `defineStore('id', { state, actions })` form. Functionally equivalent, but
 means store code reads like a composable: `ref()` for state, `computed()` for derived state, plain
 functions for actions, and everything returned is what's exposed on the store instance.
+
+## Crop & image quality
+
+### How the crop itself works
+
+Every crop is a `CropRect` (`{ x, y, width, height }`) in **natural-image pixel space** — see
+[coordinate spaces](#coordinate-spaces-natural-vs-screen-pixels) above. Its aspect ratio is locked
+to `settingsStore.ratio`; `getCenteredCropRect`/`getFocalCropRect` (`useCropEngine.ts`) pick the
+*largest* rect of that ratio that still fits inside the source image. Cropping is purely a
+**selection** — nothing about the image is scaled or re-encoded until export time, and a crop rect
+is never allowed to exceed the image's native resolution (no upscaling).
+
+There's no image-processing package anywhere in this pipeline — no `sharp`, `jimp`, `pica`, etc.
+Every pixel operation (crop, resize, encode) is done with the browser's native Canvas API
+(`OffscreenCanvas` + `drawImage` + `convertToBlob`), run inside `export.worker.ts` so it doesn't
+block the UI thread.
+
+### Where resizing happens
+
+`export.worker.ts` draws the crop in a single `drawImage` call:
+
+```ts
+ctx.drawImage(bitmap, cropRect.x, cropRect.y, cropRect.width, cropRect.height, 0, 0, outWidth, outHeight)
+```
+
+- `outWidth`/`outHeight` come from `settingsStore.outputSize` when it's set — which only happens in
+  **`custom-px` mode** (e.g. "1200×1200"). In `preset`/`custom-ratio` mode, `outputSize` is `null`
+  and the worker falls back to the crop rect's own dimensions, i.e. **no resize at all** — exports
+  are full native-resolution crops of the original file.
+- When a resize does happen, interpolation quality is whatever the browser's `drawImage` default is
+  — `ctx.imageSmoothingQuality` isn't set anywhere in this codebase, so it's not currently
+  adjustable from the UI. If exports ever need sharper/faster downscaling, that's the property to
+  set in `export.worker.ts` before drawing.
+
+### Output quality (compression)
+
+`settingsStore.quality` (range `0.5`–`1.0`, default `1.0`) is passed straight through to
+[`OffscreenCanvas.convertToBlob({ type: format, quality })`](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob) —
+the standard Canvas encoder quality parameter. It only affects **lossy** formats:
+
+- `image/jpeg`, `image/webp` — lower quality = smaller file, more compression artifacts.
+- `image/png` — always lossless; the quality slider is hidden for PNG (`ExportPanel.vue`'s
+  `supportsQuality` computed), since the browser ignores the parameter for that format anyway.
+
+To change the adjustable range or the default, edit two spots:
+
+- `src/components/ExportPanel.vue` — the `<input type="range" min="0.5" max="1" step="0.01">`.
+- `src/stores/useSettingsStore.ts` — `quality = ref(1.0)` and `outputFormat = ref<OutputFormat>('image/webp')`.
+
+### AI Crop uses a separate, lower-quality copy
+
+The image sent to Gemini for subject detection is **not** the export-quality image.
+`useImageDownscale.ts::downscaleToBase64` makes a throwaway copy — downscaled to a 1024px long edge
+and re-encoded as JPEG at quality `0.82` — purely to keep the upload small and fast. That copy is
+only used to compute a focal point (`{ focalX, focalY }`); the actual export always re-crops from
+the original, full-resolution file, so this doesn't affect final output quality. Adjust via the
+`maxDimension`/`quality` parameters of `downscaleToBase64` in `useImageDownscale.ts`.
 
 ## Getting started
 
