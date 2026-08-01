@@ -77,7 +77,7 @@ interface WorkerJob {
   bitmap: ImageBitmap
   cropRect: { x: number; y: number; width: number; height: number }
   targetSize: { width: number; height: number } | null
-  format: string
+  format: OutputFormat
   quality: number
 }
 
