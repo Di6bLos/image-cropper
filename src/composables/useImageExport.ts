@@ -81,6 +81,48 @@ interface WorkerJob {
   quality: number
 }
 
+export interface ExportSizeOptions {
+  format: OutputFormat
+  quality: number
+  outputSize: { width: number; height: number } | null
+}
+
+let previewRequestCounter = 0
+
+/**
+ * Runs a single encode job and returns only its byte size, reusing the exact same worker/encode
+ * path as a real export so the estimate can never disagree with the actual algorithm. The job id
+ * must be unique per call (not `image.id`) — callers may reuse one persistent worker across many
+ * debounced calls, and if a stale in-flight job shared its id with a fresh one for the same
+ * image, `runExportJob`'s id-matching would let the first response resolve both promises.
+ */
+export async function estimateExportSize(
+  image: ImportedImage,
+  options: ExportSizeOptions,
+  worker: Worker,
+): Promise<number | null> {
+  if (!image.cropRect) return null
+
+  const bitmap = await createImageBitmap(image.file)
+  const cropRect = {
+    x: image.cropRect.x,
+    y: image.cropRect.y,
+    width: image.cropRect.width,
+    height: image.cropRect.height,
+  }
+  const targetSize = options.outputSize ? { width: options.outputSize.width, height: options.outputSize.height } : null
+
+  const blob = await runExportJob(worker, {
+    id: `preview-${image.id}-${++previewRequestCounter}`,
+    bitmap,
+    cropRect,
+    targetSize,
+    format: options.format,
+    quality: options.quality,
+  })
+  return blob.size
+}
+
 function runExportJob(worker: Worker, job: WorkerJob): Promise<Blob> {
   return new Promise((resolve, reject) => {
     function handleMessage(event: MessageEvent) {
