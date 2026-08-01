@@ -12,6 +12,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@jsquash/jpeg": "^1.6.0",
+    "@jsquash/webp": "^1.5.0",
     "jszip": "^3.10.1",
     "pinia": "^4.0.2",
     "sass": "^1.101.0",
