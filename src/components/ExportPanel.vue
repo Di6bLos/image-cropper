@@ -24,7 +24,7 @@ const batchWatchKey = computed(() =>
     settingsStore.outputFormat,
     settingsStore.quality,
     settingsStore.outputSize,
-    imageStore.images.length,
+    imageStore.images.map((img) => ({ id: img.id, cropRect: img.cropRect })),
   ]),
 )
 
@@ -91,9 +91,9 @@ async function exportAll() {
     </label>
 
     <p v-if="imageStore.images.length" class="export-panel__size-preview">
-      <template v-if="batchPreview.isCalculating.value">Calculating total size…</template>
-      <template v-else-if="batchPreview.totalBytes.value != null">
-        Estimated total: ~{{ formatBytes(batchPreview.totalBytes.value) }}
+      <template v-if="batchPreview.isCalculating">Calculating total size…</template>
+      <template v-else-if="batchPreview.totalBytes != null">
+        Estimated total: ~{{ formatBytes(batchPreview.totalBytes) }}
       </template>
     </p>
 

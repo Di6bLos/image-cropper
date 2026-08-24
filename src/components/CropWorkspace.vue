@@ -195,8 +195,8 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
           </button>
           <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset Crop</button>
           <span v-if="activeImage.cropRect" class="crop-workspace__size-preview">
-            <template v-if="preview.isCalculating.value">Calculating…</template>
-            <template v-else-if="preview.sizeBytes.value != null">~{{ formatBytes(preview.sizeBytes.value) }}</template>
+            <template v-if="preview.isCalculating">Calculating…</template>
+            <template v-else-if="preview.sizeBytes != null">~{{ formatBytes(preview.sizeBytes) }}</template>
           </span>
           <button
             type="button"
