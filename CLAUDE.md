@@ -22,6 +22,15 @@ There is no lint script configured; type-checking (`vue-tsc -b`, three project r
 `vercel dev` does not read the repo's `.env` — it pulls from the linked Vercel project's env vars.
 One-time setup: `npx vercel link`, then `npx vercel env add GEMINI_API_KEY development`.
 
+## Changelog
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Every PR with a
+user-facing change (new feature, behavior change, fix) must add an entry under `## [Unreleased]`
+in the same PR — never batched or backfilled later. Use the standard categories (Added, Changed,
+Deprecated, Removed, Fixed, Security); skip entries for internal-only changes (tooling, docs,
+refactors with no user-visible effect). On a version bump, rename `[Unreleased]` to
+`[x.y.z] - YYYY-MM-DD` and start a new empty `[Unreleased]` section.
+
 ## Architecture
 
 Client-side bulk image cropper (Vue 3 `<script setup>` + TS, Pinia, Vite, Sass, JSZip). All
