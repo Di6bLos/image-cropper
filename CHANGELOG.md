@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Rate limiting (sliding window + exponential backoff) for AI Crop requests, to
-  avoid upstream 429 errors.
+- User-facing error message when AI Crop requests are rate limited by Gemini (HTTP 429).
 - Live estimated file size preview for single-image export and "Export all as ZIP".
 
 ### Changed
@@ -23,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a quality cliff in WebP export where dropping quality from 100% to 99%
   caused a disproportionate loss; sub-lossless WebP and all JPEG exports now go
   through jSquash's WASM encoders instead of the browser's native encoder.
+- Fixed the export size preview being stuck on "Calculating…" and failing to
+  type-check: the preview composables' refs weren't unwrapped in the templates
+  that read them.
 
 ## [v1.0] - 2026-07-17
 

@@ -25,23 +25,14 @@ const activeImage = computed(() => imageStore.activeImage)
 const isAiCropping = computed(() => activeImage.value?.aiCropStatus === 'analyzing')
 const isExporting = ref(false)
 
-const previewWatchKey = computed(() => {
-  const image = activeImage.value
-  const rect = image?.cropRect
-  return JSON.stringify([
-    image?.id,
-    rect?.x,
-    rect?.y,
-    rect?.width,
-    rect?.height,
-    settingsStore.outputFormat,
-    settingsStore.quality,
-    settingsStore.outputSize,
-  ])
-})
-
 watch(
-  previewWatchKey,
+  [
+    () => activeImage.value?.id,
+    () => activeImage.value?.cropRect,
+    () => settingsStore.outputFormat,
+    () => settingsStore.quality,
+    () => settingsStore.outputSize,
+  ],
   () =>
     preview.schedule(activeImage.value, {
       format: settingsStore.outputFormat,
@@ -195,8 +186,8 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
           </button>
           <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset Crop</button>
           <span v-if="activeImage.cropRect" class="crop-workspace__size-preview">
-            <template v-if="preview.isCalculating">Calculating…</template>
-            <template v-else-if="preview.sizeBytes != null">~{{ formatBytes(preview.sizeBytes) }}</template>
+            <template v-if="preview.isCalculating.value">Calculating…</template>
+            <template v-else-if="preview.sizeBytes.value != null">~{{ formatBytes(preview.sizeBytes.value) }}</template>
           </span>
           <button
             type="button"

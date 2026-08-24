@@ -19,17 +19,13 @@ const progress = ref({ completed: 0, total: 0 })
 const canExport = computed(() => imageStore.images.length > 0 && !isExporting.value)
 const supportsQuality = computed(() => settingsStore.outputFormat !== 'image/png')
 
-const batchWatchKey = computed(() =>
-  JSON.stringify([
+watch(
+  () => [
     settingsStore.outputFormat,
     settingsStore.quality,
     settingsStore.outputSize,
-    imageStore.images.map((img) => ({ id: img.id, cropRect: img.cropRect })),
-  ]),
-)
-
-watch(
-  batchWatchKey,
+    imageStore.images.map((img) => [img.id, img.cropRect]),
+  ],
   () =>
     batchPreview.schedule(imageStore.images, {
       format: settingsStore.outputFormat,
@@ -91,9 +87,9 @@ async function exportAll() {
     </label>
 
     <p v-if="imageStore.images.length" class="export-panel__size-preview">
-      <template v-if="batchPreview.isCalculating">Calculating total size…</template>
-      <template v-else-if="batchPreview.totalBytes != null">
-        Estimated total: ~{{ formatBytes(batchPreview.totalBytes) }}
+      <template v-if="batchPreview.isCalculating.value">Calculating total size…</template>
+      <template v-else-if="batchPreview.totalBytes.value != null">
+        Estimated total: ~{{ formatBytes(batchPreview.totalBytes.value) }}
       </template>
     </p>
 

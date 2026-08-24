@@ -334,10 +334,11 @@ to `settingsStore.ratio`; `getCenteredCropRect`/`getFocalCropRect` (`useCropEngi
 **selection** — nothing about the image is scaled or re-encoded until export time, and a crop rect
 is never allowed to exceed the image's native resolution (no upscaling).
 
-There's no image-processing package anywhere in this pipeline — no `sharp`, `jimp`, `pica`, etc.
-Every pixel operation (crop, resize, encode) is done with the browser's native Canvas API
-(`OffscreenCanvas` + `drawImage` + `convertToBlob`), run inside `export.worker.ts` so it doesn't
-block the UI thread.
+There's no server-side image-processing package anywhere in this pipeline — no `sharp`, `jimp`,
+etc. Crop and resize are done with the browser's native Canvas API (`OffscreenCanvas` +
+`drawImage`), run inside `export.worker.ts` so it doesn't block the UI thread. Encoding then goes
+through either the native `convertToBlob` encoder or a jSquash WASM codec depending on format and
+quality — see [Output quality (compression)](#output-quality-compression) below.
 
 ### Where resizing happens
 
@@ -358,13 +359,19 @@ ctx.drawImage(bitmap, cropRect.x, cropRect.y, cropRect.width, cropRect.height, 0
 
 ### Output quality (compression)
 
-`settingsStore.quality` (range `0.5`–`1.0`, default `1.0`) is passed straight through to
-[`OffscreenCanvas.convertToBlob({ type: format, quality })`](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob) —
-the standard Canvas encoder quality parameter. It only affects **lossy** formats:
+`settingsStore.quality` (range `0.5`–`1.0`, default `1.0`) only affects **lossy** formats, but
+which encoder it's passed to depends on format and value (`encodeStrategy.ts::chooseEncodeStrategy`):
 
-- `image/jpeg`, `image/webp` — lower quality = smaller file, more compression artifacts.
-- `image/png` — always lossless; the quality slider is hidden for PNG (`ExportPanel.vue`'s
-  `supportsQuality` computed), since the browser ignores the parameter for that format anyway.
+- `image/jpeg` — always encoded via jSquash's mozjpeg codec (better quality-per-byte than the
+  browser's baseline JPEG encoder), at every quality level.
+- `image/webp` — quality `1.0` stays on the native
+  [`OffscreenCanvas.convertToBlob({ type: format, quality })`](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas/convertToBlob)
+  encoder, which Chromium treats as a signal to produce true lossless WebP. Quality below `1.0`
+  routes through jSquash's libwebp codec instead, since the native encoder drops straight into
+  lossy 4:2:0-subsampled WebP below quality 1 rather than a smooth curve.
+- `image/png` — always lossless via the native encoder; the quality slider is hidden for PNG
+  (`ExportPanel.vue`'s `supportsQuality` computed), since the browser ignores the parameter for
+  that format anyway.
 
 To change the adjustable range or the default, edit two spots:
 
