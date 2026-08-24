@@ -1,20 +1,43 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useImageStore } from '../stores/useImageStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { exportImages } from '../composables/useImageExport'
 import { buildAndDownloadZip } from '../composables/useZipExport'
 import { useToast } from '../composables/useToast'
+import { useBatchPreviewSize } from '../composables/useExportPreview'
+import { formatBytes } from '../composables/useFileSize'
 
 const imageStore = useImageStore()
 const settingsStore = useSettingsStore()
 const { show } = useToast()
+const batchPreview = useBatchPreviewSize()
 
 const isExporting = ref(false)
 const progress = ref({ completed: 0, total: 0 })
 
 const canExport = computed(() => imageStore.images.length > 0 && !isExporting.value)
 const supportsQuality = computed(() => settingsStore.outputFormat !== 'image/png')
+
+const batchWatchKey = computed(() =>
+  JSON.stringify([
+    settingsStore.outputFormat,
+    settingsStore.quality,
+    settingsStore.outputSize,
+    imageStore.images.map((img) => ({ id: img.id, cropRect: img.cropRect })),
+  ]),
+)
+
+watch(
+  batchWatchKey,
+  () =>
+    batchPreview.schedule(imageStore.images, {
+      format: settingsStore.outputFormat,
+      quality: settingsStore.quality,
+      outputSize: settingsStore.outputSize,
+    }),
+  { immediate: true },
+)
 
 async function exportAll() {
   if (!imageStore.images.length) return
@@ -67,6 +90,13 @@ async function exportAll() {
       <input type="range" min="0.5" max="1" step="0.01" v-model.number="settingsStore.quality" />
     </label>
 
+    <p v-if="imageStore.images.length" class="export-panel__size-preview">
+      <template v-if="batchPreview.isCalculating">Calculating total size…</template>
+      <template v-else-if="batchPreview.totalBytes != null">
+        Estimated total: ~{{ formatBytes(batchPreview.totalBytes) }}
+      </template>
+    </p>
+
     <button type="button" class="export-panel__button" :disabled="!canExport" @click="exportAll">
       {{ isExporting ? `Exporting ${progress.completed}/${progress.total}…` : 'Export all as ZIP' }}
     </button>
@@ -109,6 +139,12 @@ async function exportAll() {
     border: 1px solid $color-border;
     border-radius: $radius-sm;
   }
+}
+
+.export-panel__size-preview {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $color-text-muted;
 }
 
 .export-panel__button {

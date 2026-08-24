@@ -7,12 +7,15 @@ import { runAiCrop } from '../composables/useAiCrop'
 import { exportImages } from '../composables/useImageExport'
 import { downloadBlob } from '../composables/useZipExport'
 import { useToast } from '../composables/useToast'
+import { useSinglePreviewSize } from '../composables/useExportPreview'
+import { formatBytes } from '../composables/useFileSize'
 import type { CropRect } from '../types/image'
 import CropHandle from './CropHandle.vue'
 
 const imageStore = useImageStore()
 const settingsStore = useSettingsStore()
 const { show } = useToast()
+const preview = useSinglePreviewSize()
 
 const imageRef = ref<HTMLImageElement | null>(null)
 const displayScale = ref(1)
@@ -21,6 +24,32 @@ const imageOffset = ref({ left: 0, top: 0 })
 const activeImage = computed(() => imageStore.activeImage)
 const isAiCropping = computed(() => activeImage.value?.aiCropStatus === 'analyzing')
 const isExporting = ref(false)
+
+const previewWatchKey = computed(() => {
+  const image = activeImage.value
+  const rect = image?.cropRect
+  return JSON.stringify([
+    image?.id,
+    rect?.x,
+    rect?.y,
+    rect?.width,
+    rect?.height,
+    settingsStore.outputFormat,
+    settingsStore.quality,
+    settingsStore.outputSize,
+  ])
+})
+
+watch(
+  previewWatchKey,
+  () =>
+    preview.schedule(activeImage.value, {
+      format: settingsStore.outputFormat,
+      quality: settingsStore.quality,
+      outputSize: settingsStore.outputSize,
+    }),
+  { immediate: true },
+)
 
 async function aiCropActive() {
   const image = activeImage.value
@@ -165,6 +194,10 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
             {{ isAiCropping ? 'Analyzing…' : 'AI Crop' }}
           </button>
           <button type="button" class="crop-workspace__reset" @click="resetCrop">Reset Crop</button>
+          <span v-if="activeImage.cropRect" class="crop-workspace__size-preview">
+            <template v-if="preview.isCalculating">Calculating…</template>
+            <template v-else-if="preview.sizeBytes != null">~{{ formatBytes(preview.sizeBytes) }}</template>
+          </span>
           <button
             type="button"
             class="crop-workspace__export"
@@ -231,7 +264,14 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
 
 .crop-workspace__actions {
   display: flex;
+  align-items: center;
   gap: $space-xs;
+}
+
+.crop-workspace__size-preview {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+  white-space: nowrap;
 }
 
 .crop-workspace__reset {
