@@ -10,7 +10,12 @@ describe('DropZone', () => {
 
   it('renders drag-and-drop instructions', () => {
     const wrapper = mount(DropZone)
-    expect(wrapper.text()).toContain('Drag & drop images here')
+    expect(wrapper.text()).toContain('Drag & drop images or PDFs here')
+  })
+
+  it('accepts images and PDFs on the file input', () => {
+    const wrapper = mount(DropZone)
+    expect(wrapper.find('input[type="file"]').attributes('accept')).toBe('image/*,application/pdf')
   })
 
   it('opens the file picker when clicked', async () => {

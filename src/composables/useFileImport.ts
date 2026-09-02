@@ -3,9 +3,11 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useToast } from './useToast'
 import { createObjectUrl } from './useObjectUrls'
 import { getCenteredCropRect } from './useCropEngine'
+import { rasterizePdf, pdfPageName, MAX_PDF_PAGES } from './usePdfRasterize'
 import type { ImportedImage } from '../types/image'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp']
+const PDF_TYPE = 'application/pdf'
 
 export function useFileImport() {
   const imageStore = useImageStore()
@@ -18,6 +20,36 @@ export function useFileImport() {
     const rejected: string[] = []
 
     for (const file of files) {
+      if (file.type === PDF_TYPE) {
+        try {
+          const { pages, totalPages } = await rasterizePdf(file)
+          for (const page of pages) {
+            const name = pdfPageName(file.name, page.pageNumber)
+            accepted.push({
+              id: crypto.randomUUID(),
+              file: new File([page.blob], `${name}.png`, { type: 'image/png' }),
+              name,
+              url: createObjectUrl(page.blob),
+              naturalWidth: page.width,
+              naturalHeight: page.height,
+              cropRect: getCenteredCropRect(page.width, page.height, settingsStore.ratio),
+              status: 'ready',
+              focalPoint: null,
+              aiCropStatus: 'idle',
+            })
+          }
+          if (totalPages > MAX_PDF_PAGES) {
+            show(
+              `${file.name} has ${totalPages} pages — imported the first ${MAX_PDF_PAGES}`,
+              'info',
+            )
+          }
+        } catch {
+          rejected.push(file.name)
+        }
+        continue
+      }
+
       if (!ACCEPTED_TYPES.includes(file.type)) {
         rejected.push(file.name)
         continue
