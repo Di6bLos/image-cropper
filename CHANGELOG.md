@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- _(2026.09.02, branch `feature/pdf-import`)_ PDF import: dropped or selected PDFs are
+  rasterized client-side, one croppable image per page (first 25 pages, ~2048 px on the
+  long edge).
 - User-facing error message when AI Crop requests are rate limited by Gemini (HTTP 429).
 - Live estimated file size preview for single-image export and "Export all as ZIP".
 
