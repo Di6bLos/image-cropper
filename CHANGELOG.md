@@ -28,8 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the selected ratio while dragging.
 - _(2026-09-03, branch `update/ux-ui`)_ New images now import uncropped: the first
   upload switches to Custom size (px) mode at that image's own resolution, and every
-  imported image's crop covers the whole image. "Reset Crop" now also sets Custom
-  size (px) to the current image's own resolution; "Reset Crop" and "Reset all image
+  imported image's crop covers the whole image. "Reset Crop" and "Reset all image
   crops" stretch the crop to cover the entire image instead of a centered ratio crop.
   The initial dropzone is now much larger, filling most of the empty area.
 - _(2026-09-03, branch `update/ux-ui`)_ Export encoding switched to jSquash WASM codecs
@@ -49,6 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - _(2026-09-03, branch `update/ux-ui`)_ Fixed the export size preview being stuck on
   "Calculating…" and failing to type-check: the preview composables' refs weren't
   unwrapped in the templates that read them.
+- _(2026-09-03, branch `stage`)_ "Reset Crop" no longer rewrites the batch-wide Custom
+  size (px) settings, which discarded every other image's crop edits.
+- _(2026-09-03, branch `stage`)_ PDFs and images dropped from sources that supply no
+  MIME type are now recognized by their file extension instead of being skipped as
+  unsupported.
+- _(2026-09-03, branch `stage`)_ A PDF that can't be read (corrupt or password
+  protected) now reports that instead of the misleading "unsupported file" message.
+- _(2026-09-03, branch `stage`)_ Exported PDF pages keep their `-pN` page suffix when
+  the source filename contains dots (e.g. `q3.2024.final.pdf`), so pages no longer
+  collide under one name in the ZIP.
+- _(2026-09-03, branch `stage`)_ Export no longer stretches a large hand-resized crop
+  to the Custom size (px) shape: the aspect match now uses a one-pixel tolerance rather
+  than a percentage that grew with the crop.
+- _(2026-09-03, branch `stage`)_ Dragging a crop handle on an image smaller than the
+  minimum crop size no longer pushes the crop box outside the image.
 
 ## [v1.0] - 2026-07-17
 
