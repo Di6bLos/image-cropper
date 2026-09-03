@@ -1,8 +1,9 @@
+import { nextTick } from 'vue'
 import { useImageStore } from '../stores/useImageStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useToast } from './useToast'
 import { createObjectUrl } from './useObjectUrls'
-import { getCenteredCropRect } from './useCropEngine'
+import { getFullImageCropRect } from './useCropEngine'
 import { rasterizePdf, pdfPageName, MAX_PDF_PAGES } from './usePdfRasterize'
 import type { ImportedImage } from '../types/image'
 
@@ -32,7 +33,7 @@ export function useFileImport() {
               url: createObjectUrl(page.blob),
               naturalWidth: page.width,
               naturalHeight: page.height,
-              cropRect: getCenteredCropRect(page.width, page.height, settingsStore.ratio),
+              cropRect: getFullImageCropRect(page.width, page.height),
               status: 'ready',
               focalPoint: null,
               aiCropStatus: 'idle',
@@ -63,7 +64,7 @@ export function useFileImport() {
           url: createObjectUrl(file),
           naturalWidth: width,
           naturalHeight: height,
-          cropRect: getCenteredCropRect(width, height, settingsStore.ratio),
+          cropRect: getFullImageCropRect(width, height),
           status: 'ready',
           focalPoint: null,
           aiCropStatus: 'idle',
@@ -71,6 +72,17 @@ export function useFileImport() {
       } catch {
         rejected.push(file.name)
       }
+    }
+
+    if (accepted.length && imageStore.images.length === 0) {
+      // First upload: default to Custom size (px) at the first image's own resolution,
+      // so the initial crop covers the whole image. Flush the App.vue ratio watcher
+      // against the still-empty list before adding, so it doesn't overwrite the
+      // full-image crop rects the imported images already carry.
+      settingsStore.mode = 'custom-px'
+      settingsStore.customPxWidth = accepted[0].naturalWidth
+      settingsStore.customPxHeight = accepted[0].naturalHeight
+      await nextTick()
     }
 
     if (accepted.length) {

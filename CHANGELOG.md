@@ -17,11 +17,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- _(2026.09.03, branch `update/ux-ui`)_ Exported files get a `_cropped` suffix before
+  the extension when the crop actually trims the image; a full-image export (format
+  conversion only) keeps the original base name.
+- _(2026.09.02, branch `update/ux-ui`)_ The crop box now has eight drag handles
+  (four corners, four edges) and resizes free-form — drag any handle to change the
+  crop's shape and size, with the opposite edge anchored. It is no longer locked to
+  the selected ratio while dragging.
+- _(2026.09.02, branch `update/ux-ui`)_ New images now import uncropped: the first
+  upload switches to Custom size (px) mode at that image's own resolution, and every
+  imported image's crop covers the whole image. "Reset Crop" now also sets Custom
+  size (px) to the current image's own resolution; "Reset Crop" and "Reset all image
+  crops" stretch the crop to cover the entire image instead of a centered ratio crop.
+  The initial dropzone is now much larger, filling most of the empty area.
 - Export encoding switched to jSquash WASM codecs (mozjpeg, libwebp) instead of the
   browser's native canvas encoder, for better compression.
 
 ### Fixed
 
+- _(2026.09.02, branch `update/ux-ui`)_ Export no longer stretches a hand-resized
+  crop to fill the Custom size (px) dimensions. The fixed output size is applied only
+  when it matches the crop's aspect ratio; a free-form crop now exports at its own
+  pixel dimensions.
 - Fixed a quality cliff in WebP export where dropping quality from 100% to 99%
   caused a disproportionate loss; sub-lossless WebP and all JPEG exports now go
   through jSquash's WASM encoders instead of the browser's native encoder.
