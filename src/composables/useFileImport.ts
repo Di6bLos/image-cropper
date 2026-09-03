@@ -10,6 +10,26 @@ import type { ImportedImage } from '../types/image'
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp']
 const PDF_TYPE = 'application/pdf'
 
+const EXTENSION_TYPES: Record<string, string> = {
+  pdf: PDF_TYPE,
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  bmp: 'image/bmp',
+}
+
+/**
+ * `File.type` may be empty — some drag-and-drop sources supply no MIME type — which would
+ * otherwise reject a perfectly supported file, so fall back to the filename extension.
+ */
+export function resolveFileType(file: File): string {
+  if (file.type) return file.type
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  return EXTENSION_TYPES[extension] ?? ''
+}
+
 export function useFileImport() {
   const imageStore = useImageStore()
   const settingsStore = useSettingsStore()
@@ -19,9 +39,12 @@ export function useFileImport() {
     const files = Array.from(fileList)
     const accepted: ImportedImage[] = []
     const rejected: string[] = []
+    const unreadable: string[] = []
 
     for (const file of files) {
-      if (file.type === PDF_TYPE) {
+      const type = resolveFileType(file)
+
+      if (type === PDF_TYPE) {
         try {
           const { pages, totalPages } = await rasterizePdf(file)
           for (const page of pages) {
@@ -45,13 +68,16 @@ export function useFileImport() {
               'info',
             )
           }
-        } catch {
-          rejected.push(file.name)
+        } catch (error) {
+          // The file *is* a supported type — it just couldn't be read (corrupt, encrypted,
+          // password-protected), which is a different message from "unsupported file".
+          const isEncrypted = (error as { name?: string } | null)?.name === 'PasswordException'
+          unreadable.push(isEncrypted ? `${file.name} (password protected)` : file.name)
         }
         continue
       }
 
-      if (!ACCEPTED_TYPES.includes(file.type)) {
+      if (!ACCEPTED_TYPES.includes(type)) {
         rejected.push(file.name)
         continue
       }
@@ -70,7 +96,7 @@ export function useFileImport() {
           aiCropStatus: 'idle',
         })
       } catch {
-        rejected.push(file.name)
+        unreadable.push(file.name)
       }
     }
 
@@ -91,6 +117,10 @@ export function useFileImport() {
     }
     if (rejected.length) {
       show(`Skipped ${rejected.length} unsupported file${rejected.length === 1 ? '' : 's'}`, 'error')
+    }
+    if (unreadable.length) {
+      const detail = unreadable.length === 1 ? unreadable[0] : `${unreadable.length} files`
+      show(`Couldn't read ${detail} — the file may be corrupt or password protected`, 'error')
     }
   }
 

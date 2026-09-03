@@ -17,7 +17,7 @@ vi.mock('../../src/composables/useToast', () => ({
   useToast: () => ({ show: showMock, toasts: [], dismiss: vi.fn() }),
 }))
 
-import { useFileImport } from '../../src/composables/useFileImport'
+import { useFileImport, resolveFileType } from '../../src/composables/useFileImport'
 import { useImageStore } from '../../src/stores/useImageStore'
 
 const origCreateObjectURL = URL.createObjectURL
@@ -73,17 +73,42 @@ describe('useFileImport — PDF import', () => {
     expect(showMock).toHaveBeenCalledWith(expect.stringContaining('40 pages'), 'info')
   })
 
-  it('rejects the file (no throw) when rasterization fails', async () => {
-    rasterizePdfMock.mockRejectedValue(new Error('encrypted'))
+  it('reports a read failure (not "unsupported") when rasterization fails', async () => {
+    rasterizePdfMock.mockRejectedValue(new Error('corrupt'))
 
     await expect(
       useFileImport().importFiles([
-        new File(['%PDF'], 'locked.pdf', { type: 'application/pdf' }),
+        new File(['%PDF'], 'broken.pdf', { type: 'application/pdf' }),
       ]),
     ).resolves.toBeUndefined()
 
     expect(useImageStore().images).toHaveLength(0)
-    expect(showMock).toHaveBeenCalledWith(expect.stringContaining('unsupported file'), 'error')
+    expect(showMock).toHaveBeenCalledWith(expect.stringContaining("Couldn't read broken.pdf"), 'error')
+    expect(showMock).not.toHaveBeenCalledWith(expect.stringContaining('unsupported file'), 'error')
+  })
+
+  it('names a password-protected PDF as such', async () => {
+    const error = new Error('No password given')
+    error.name = 'PasswordException'
+    rasterizePdfMock.mockRejectedValue(error)
+
+    await useFileImport().importFiles([
+      new File(['%PDF'], 'locked.pdf', { type: 'application/pdf' }),
+    ])
+
+    expect(showMock).toHaveBeenCalledWith(
+      expect.stringContaining('locked.pdf (password protected)'),
+      'error',
+    )
+  })
+
+  it('rasterizes a PDF whose File carries no MIME type', async () => {
+    rasterizePdfMock.mockResolvedValue({ pages: [pdfPage(1)], totalPages: 1 })
+
+    await useFileImport().importFiles([new File(['%PDF'], 'dragged.pdf', { type: '' })])
+
+    expect(rasterizePdfMock).toHaveBeenCalled()
+    expect(useImageStore().images).toHaveLength(1)
   })
 
   it('still rejects a non-PDF unsupported file without calling the rasterizer', async () => {
@@ -117,5 +142,38 @@ describe('useFileImport — PDF import', () => {
     expect(images[0].name).toBe('photo.png')
     expect(images[0].naturalWidth).toBe(800)
     expect(rasterizePdfMock).not.toHaveBeenCalled()
+  })
+
+  it('imports an image whose File carries no MIME type', async () => {
+    class FakeImage {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      naturalWidth = 640
+      naturalHeight = 480
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.())
+      }
+    }
+    vi.stubGlobal('Image', FakeImage)
+
+    await useFileImport().importFiles([new File(['\xFF\xD8'], 'dragged.JPEG', { type: '' })])
+
+    expect(useImageStore().images).toHaveLength(1)
+  })
+})
+
+describe('resolveFileType', () => {
+  it('passes a declared MIME type straight through', () => {
+    expect(resolveFileType(new File([''], 'a.pdf', { type: 'image/png' }))).toBe('image/png')
+  })
+
+  it('falls back to the extension when the MIME type is empty', () => {
+    expect(resolveFileType(new File([''], 'a.PDF', { type: '' }))).toBe('application/pdf')
+    expect(resolveFileType(new File([''], 'a.jpg', { type: '' }))).toBe('image/jpeg')
+  })
+
+  it('is empty for an unknown extension with no MIME type', () => {
+    expect(resolveFileType(new File([''], 'notes.txt', { type: '' }))).toBe('')
+    expect(resolveFileType(new File([''], 'noextension', { type: '' }))).toBe('')
   })
 })
