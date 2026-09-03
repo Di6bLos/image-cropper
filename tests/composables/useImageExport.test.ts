@@ -55,4 +55,8 @@ describe('resolveTargetSize', () => {
     // 50px off the target shape — inside a 1% relative tolerance, but a visible stretch.
     expect(resolveTargetSize({ width: 10000, height: 9950 }, { width: 4000, height: 4000 })).toBeNull()
   })
+
+  it('rejects a crop that is only within 1px on one axis', () => {
+    expect(resolveTargetSize({ width: 4000, height: 2 }, { width: 4000, height: 1 })).toBeNull()
+  })
 })

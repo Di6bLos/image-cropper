@@ -38,10 +38,11 @@ export function resolveTargetSize(
 ): { width: number; height: number } | null {
   if (!outputSize) return null
   const targetAspect = outputSize.width / outputSize.height
-  // Compare in pixels, not as a relative aspect difference: a percentage tolerance scales with
-  // the crop, so a large hand-resized crop could still be stretched to the target shape. Only
-  // sub-pixel geometry noise (the crop is exactly this shape, up to rounding) is accepted.
-  if (Math.abs(cropRect.width / targetAspect - cropRect.height) > 1) return null
+  // Compare in pixels along both axes, not as a percentage tolerance: a large free-form crop can
+  // otherwise be stretched to the target shape even while staying within a relative threshold.
+  const widthMismatch = Math.abs(cropRect.width - cropRect.height * targetAspect)
+  const heightMismatch = Math.abs(cropRect.height - cropRect.width / targetAspect)
+  if (widthMismatch > 1 || heightMismatch > 1) return null
   return { width: outputSize.width, height: outputSize.height }
 }
 
