@@ -179,11 +179,9 @@ function onHandlePointerUp() {
 function resetCrop() {
   const image = activeImage.value
   if (!image) return
-  // Reset the batch Custom size (px) to this image's own resolution, so it shows
-  // uncropped at native size — same state as a first import.
-  settingsStore.mode = 'custom-px'
-  settingsStore.customPxWidth = image.naturalWidth
-  settingsStore.customPxHeight = image.naturalHeight
+  // Per-image action: only this image's crop is reset. Writing the batch-wide Custom
+  // size (px) here would change `settingsStore.ratio` and make the App.vue watcher
+  // reapply a fresh crop to every *other* image, discarding their edits.
   imageStore.setCropRect(image.id, getFullImageCropRect(image.naturalWidth, image.naturalHeight))
   imageStore.setFocalPoint(image.id, null)
   imageStore.setAiCropStatus(image.id, 'idle')
