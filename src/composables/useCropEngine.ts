@@ -82,10 +82,15 @@ export function resizeCropRectEdge(
   let right = rect.x + rect.width
   let bottom = rect.y + rect.height
 
-  if (handle.includes('w')) left = clamp(left + dx, 0, right - MIN_CROP_SIZE)
-  if (handle.includes('e')) right = clamp(right + dx, left + MIN_CROP_SIZE, naturalWidth)
-  if (handle.includes('n')) top = clamp(top + dy, 0, bottom - MIN_CROP_SIZE)
-  if (handle.includes('s')) bottom = clamp(bottom + dy, top + MIN_CROP_SIZE, naturalHeight)
+  // An image (or an existing rect) smaller than MIN_CROP_SIZE would otherwise hand `clamp`
+  // an inverted range and push an edge outside the image, so cap the minimum by what's available.
+  const minWidth = Math.min(MIN_CROP_SIZE, naturalWidth)
+  const minHeight = Math.min(MIN_CROP_SIZE, naturalHeight)
+
+  if (handle.includes('w')) left = clamp(left + dx, 0, Math.max(right - minWidth, 0))
+  if (handle.includes('e')) right = clamp(right + dx, Math.min(left + minWidth, naturalWidth), naturalWidth)
+  if (handle.includes('n')) top = clamp(top + dy, 0, Math.max(bottom - minHeight, 0))
+  if (handle.includes('s')) bottom = clamp(bottom + dy, Math.min(top + minHeight, naturalHeight), naturalHeight)
 
   return { x: left, y: top, width: right - left, height: bottom - top }
 }

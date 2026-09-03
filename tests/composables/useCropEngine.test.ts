@@ -89,4 +89,12 @@ describe('resizeCropRectEdge', () => {
   it('enforces the minimum when dragging the north edge past the south edge', () => {
     expect(resizeCropRectEdge(rect, 'n', 0, 999, 200, 200)).toEqual({ x: 20, y: 28, width: 60, height: 32 })
   })
+
+  it('stays inside an image smaller than the minimum crop size', () => {
+    // 16x16 image: the minimum can't be honored, so the crop is capped by the image itself.
+    const tiny = { x: 0, y: 0, width: 16, height: 16 }
+    expect(resizeCropRectEdge(tiny, 'w', -50, 0, 16, 16)).toEqual(tiny)
+    expect(resizeCropRectEdge(tiny, 'nw', 50, 50, 16, 16)).toEqual(tiny)
+    expect(resizeCropRectEdge(tiny, 'se', -50, -50, 16, 16)).toEqual(tiny)
+  })
 })
