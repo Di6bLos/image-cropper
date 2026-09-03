@@ -6,6 +6,11 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+/** Crop rect covering the entire image. */
+export function getFullImageCropRect(naturalWidth: number, naturalHeight: number): CropRect {
+  return { x: 0, y: 0, width: naturalWidth, height: naturalHeight }
+}
+
 /** Largest centered crop rect matching `ratio` (width/height) that fits inside the image. */
 export function getCenteredCropRect(naturalWidth: number, naturalHeight: number, ratio: number): CropRect {
   const imageRatio = naturalWidth / naturalHeight
@@ -57,28 +62,30 @@ export function panCropRect(rect: CropRect, dx: number, dy: number, naturalWidth
   }
 }
 
+export type CropHandlePosition = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+
 /**
- * Resizes a crop rect around its own center by `widthDelta` natural-image pixels,
- * keeping it locked to `ratio` and within the image bounds.
+ * Free-form resize: moves the edge(s) named by `handle` by (dx, dy) natural-image
+ * pixels while the opposite edge(s) stay anchored. Clamps within the image bounds
+ * and enforces `MIN_CROP_SIZE`; a dragged edge cannot cross its opposite edge.
  */
-export function resizeCropRect(
+export function resizeCropRectEdge(
   rect: CropRect,
-  widthDelta: number,
-  ratio: number,
+  handle: CropHandlePosition,
+  dx: number,
+  dy: number,
   naturalWidth: number,
   naturalHeight: number,
 ): CropRect {
-  const centerX = rect.x + rect.width / 2
-  const centerY = rect.y + rect.height / 2
+  let left = rect.x
+  let top = rect.y
+  let right = rect.x + rect.width
+  let bottom = rect.y + rect.height
 
-  const maxWidth = Math.min(naturalWidth, naturalHeight * ratio)
-  const minWidth = Math.min(MIN_CROP_SIZE, maxWidth)
+  if (handle.includes('w')) left = clamp(left + dx, 0, right - MIN_CROP_SIZE)
+  if (handle.includes('e')) right = clamp(right + dx, left + MIN_CROP_SIZE, naturalWidth)
+  if (handle.includes('n')) top = clamp(top + dy, 0, bottom - MIN_CROP_SIZE)
+  if (handle.includes('s')) bottom = clamp(bottom + dy, top + MIN_CROP_SIZE, naturalHeight)
 
-  const nextWidth = clamp(rect.width + widthDelta, minWidth, maxWidth)
-  const nextHeight = nextWidth / ratio
-
-  const x = clamp(centerX - nextWidth / 2, 0, Math.max(naturalWidth - nextWidth, 0))
-  const y = clamp(centerY - nextHeight / 2, 0, Math.max(naturalHeight - nextHeight, 0))
-
-  return { x, y, width: nextWidth, height: nextHeight }
+  return { x: left, y: top, width: right - left, height: bottom - top }
 }

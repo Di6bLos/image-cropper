@@ -111,4 +111,9 @@ watch(
   justify-content: center;
   padding: $space-xl;
 }
+
+.app__empty .drop-zone {
+  width: 75%;
+  height: 75%;
+}
 </style>

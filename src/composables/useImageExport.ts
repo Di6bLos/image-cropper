@@ -17,6 +17,32 @@ export interface ExportedFile {
   blob: Blob
 }
 
+/** True when the crop rect trims the image rather than covering it in full. */
+export function isCropped(
+  cropRect: { x: number; y: number; width: number; height: number },
+  naturalWidth: number,
+  naturalHeight: number,
+): boolean {
+  const epsilon = 1
+  return (
+    cropRect.x > epsilon ||
+    cropRect.y > epsilon ||
+    cropRect.width < naturalWidth - epsilon ||
+    cropRect.height < naturalHeight - epsilon
+  )
+}
+
+export function resolveTargetSize(
+  cropRect: { width: number; height: number },
+  outputSize: { width: number; height: number } | null,
+): { width: number; height: number } | null {
+  if (!outputSize) return null
+  const cropAspect = cropRect.width / cropRect.height
+  const targetAspect = outputSize.width / outputSize.height
+  if (Math.abs(cropAspect - targetAspect) / targetAspect > 0.01) return null
+  return { width: outputSize.width, height: outputSize.height }
+}
+
 export async function exportImages(images: ImportedImage[], options: ExportOptions): Promise<ExportedFile[]> {
   const worker = new Worker(new URL('../workers/export.worker.ts', import.meta.url), { type: 'module' })
   const results: ExportedFile[] = []
@@ -41,9 +67,7 @@ export async function exportImages(images: ImportedImage[], options: ExportOptio
           width: image.cropRect.width,
           height: image.cropRect.height,
         }
-        const targetSize = options.outputSize
-          ? { width: options.outputSize.width, height: options.outputSize.height }
-          : null
+        const targetSize = resolveTargetSize(cropRect, options.outputSize)
         const blob = await runExportJob(worker, {
           id: image.id,
           bitmap,
@@ -52,8 +76,9 @@ export async function exportImages(images: ImportedImage[], options: ExportOptio
           format: options.format,
           quality: options.quality,
         })
+        const suffix = isCropped(cropRect, image.naturalWidth, image.naturalHeight) ? '_cropped' : ''
         results.push({
-          name: `${sanitizeFilename(image.name)}.${extensionForFormat(options.format)}`,
+          name: `${sanitizeFilename(image.name)}${suffix}.${extensionForFormat(options.format)}`,
           blob,
         })
         options.onImageDone?.(image.id)
@@ -110,7 +135,7 @@ export async function estimateExportSize(
     width: image.cropRect.width,
     height: image.cropRect.height,
   }
-  const targetSize = options.outputSize ? { width: options.outputSize.width, height: options.outputSize.height } : null
+  const targetSize = resolveTargetSize(cropRect, options.outputSize)
 
   const blob = await runExportJob(worker, {
     id: `preview-${image.id}-${++previewRequestCounter}`,
