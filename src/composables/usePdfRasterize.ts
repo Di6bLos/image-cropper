@@ -56,9 +56,10 @@ export async function rasterizePdf(file: File): Promise<RasterizedPdf> {
 
   const buffer = await file.arrayBuffer()
   const loadingTask = pdfjs.getDocument({ data: buffer })
-  const doc = await loadingTask.promise
 
   try {
+    // Awaited inside the try so a malformed/encrypted PDF still tears down the pdf.js worker.
+    const doc = await loadingTask.promise
     const totalPages = doc.numPages
     const pageCount = Math.min(totalPages, MAX_PDF_PAGES)
     const pages: RasterizedPdfPage[] = []
