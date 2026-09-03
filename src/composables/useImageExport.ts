@@ -37,9 +37,11 @@ export function resolveTargetSize(
   outputSize: { width: number; height: number } | null,
 ): { width: number; height: number } | null {
   if (!outputSize) return null
-  const cropAspect = cropRect.width / cropRect.height
   const targetAspect = outputSize.width / outputSize.height
-  if (Math.abs(cropAspect - targetAspect) / targetAspect > 0.01) return null
+  // Compare in pixels, not as a relative aspect difference: a percentage tolerance scales with
+  // the crop, so a large hand-resized crop could still be stretched to the target shape. Only
+  // sub-pixel geometry noise (the crop is exactly this shape, up to rounding) is accepted.
+  if (Math.abs(cropRect.width / targetAspect - cropRect.height) > 1) return null
   return { width: outputSize.width, height: outputSize.height }
 }
 
@@ -78,7 +80,10 @@ export async function exportImages(images: ImportedImage[], options: ExportOptio
         })
         const suffix = isCropped(cropRect, image.naturalWidth, image.naturalHeight) ? '_cropped' : ''
         results.push({
-          name: `${sanitizeFilename(image.name)}${suffix}.${extensionForFormat(options.format)}`,
+          // Sanitize `file.name`, not the display `name`: PDF page names carry no extension, so
+          // `sanitizeFilename` would read the last dotted segment of e.g. "q3.2024.final-p1" as
+          // one and drop the page suffix. `file.name` always ends in a real extension.
+          name: `${sanitizeFilename(image.file.name)}${suffix}.${extensionForFormat(options.format)}`,
           blob,
         })
         options.onImageDone?.(image.id)

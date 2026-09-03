@@ -44,10 +44,15 @@ describe('resolveTargetSize', () => {
     expect(resolveTargetSize({ width: 990, height: 754 }, { width: 1600, height: 900 })).toBeNull()
   })
 
-  it('tolerates a sub-percent aspect difference', () => {
+  it('tolerates sub-pixel rounding noise', () => {
     expect(resolveTargetSize({ width: 1599, height: 900 }, { width: 1600, height: 900 })).toEqual({
       width: 1600,
       height: 900,
     })
+  })
+
+  it('does not let the tolerance scale with the crop size', () => {
+    // 50px off the target shape — inside a 1% relative tolerance, but a visible stretch.
+    expect(resolveTargetSize({ width: 10000, height: 9950 }, { width: 4000, height: 4000 })).toBeNull()
   })
 })
