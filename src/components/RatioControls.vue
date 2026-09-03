@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useSettingsStore, RATIO_PRESETS } from '../stores/useSettingsStore'
 import { useImageStore } from '../stores/useImageStore'
-import { getCenteredCropRect } from '../composables/useCropEngine'
+import { getFullImageCropRect } from '../composables/useCropEngine'
 import { useToast } from '../composables/useToast'
 
 const settingsStore = useSettingsStore()
@@ -13,11 +13,10 @@ function selectPreset(index: number) {
   settingsStore.presetIndex = index
 }
 
-function resetCropCenter() {
-  const ratio = settingsStore.ratio
+function resetCropFull() {
   imageStore.clearFocalPoints()
-  imageStore.applyToAll((image) => getCenteredCropRect(image.naturalWidth, image.naturalHeight, ratio))
-  show('Crop reset to center on all images', 'success')
+  imageStore.applyToAll((image) => getFullImageCropRect(image.naturalWidth, image.naturalHeight))
+  show('Crop reset to cover the full image', 'success')
 }
 </script>
 
@@ -92,7 +91,7 @@ function resetCropCenter() {
       type="button"
       class="ratio-controls__apply"
       :disabled="!imageStore.images.length"
-      @click="resetCropCenter"
+      @click="resetCropFull"
     >
       Reset all image crops
     </button>

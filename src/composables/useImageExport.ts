@@ -17,6 +17,35 @@ export interface ExportedFile {
   blob: Blob
 }
 
+/** True when the crop rect trims the image rather than covering it in full. */
+export function isCropped(
+  cropRect: { x: number; y: number; width: number; height: number },
+  naturalWidth: number,
+  naturalHeight: number,
+): boolean {
+  const epsilon = 1
+  return (
+    cropRect.x > epsilon ||
+    cropRect.y > epsilon ||
+    cropRect.width < naturalWidth - epsilon ||
+    cropRect.height < naturalHeight - epsilon
+  )
+}
+
+export function resolveTargetSize(
+  cropRect: { width: number; height: number },
+  outputSize: { width: number; height: number } | null,
+): { width: number; height: number } | null {
+  if (!outputSize) return null
+  const targetAspect = outputSize.width / outputSize.height
+  // Compare in pixels along both axes, not as a percentage tolerance: a large free-form crop can
+  // otherwise be stretched to the target shape even while staying within a relative threshold.
+  const widthMismatch = Math.abs(cropRect.width - cropRect.height * targetAspect)
+  const heightMismatch = Math.abs(cropRect.height - cropRect.width / targetAspect)
+  if (widthMismatch > 1 || heightMismatch > 1) return null
+  return { width: outputSize.width, height: outputSize.height }
+}
+
 export async function exportImages(images: ImportedImage[], options: ExportOptions): Promise<ExportedFile[]> {
   const worker = new Worker(new URL('../workers/export.worker.ts', import.meta.url), { type: 'module' })
   const results: ExportedFile[] = []
@@ -41,9 +70,7 @@ export async function exportImages(images: ImportedImage[], options: ExportOptio
           width: image.cropRect.width,
           height: image.cropRect.height,
         }
-        const targetSize = options.outputSize
-          ? { width: options.outputSize.width, height: options.outputSize.height }
-          : null
+        const targetSize = resolveTargetSize(cropRect, options.outputSize)
         const blob = await runExportJob(worker, {
           id: image.id,
           bitmap,
@@ -52,8 +79,12 @@ export async function exportImages(images: ImportedImage[], options: ExportOptio
           format: options.format,
           quality: options.quality,
         })
+        const suffix = isCropped(cropRect, image.naturalWidth, image.naturalHeight) ? '_cropped' : ''
         results.push({
-          name: `${sanitizeFilename(image.name)}.${extensionForFormat(options.format)}`,
+          // Sanitize `file.name`, not the display `name`: PDF page names carry no extension, so
+          // `sanitizeFilename` would read the last dotted segment of e.g. "q3.2024.final-p1" as
+          // one and drop the page suffix. `file.name` always ends in a real extension.
+          name: `${sanitizeFilename(image.file.name)}${suffix}.${extensionForFormat(options.format)}`,
           blob,
         })
         options.onImageDone?.(image.id)
@@ -110,7 +141,7 @@ export async function estimateExportSize(
     width: image.cropRect.width,
     height: image.cropRect.height,
   }
-  const targetSize = options.outputSize ? { width: options.outputSize.width, height: options.outputSize.height } : null
+  const targetSize = resolveTargetSize(cropRect, options.outputSize)
 
   const blob = await runExportJob(worker, {
     id: `preview-${image.id}-${++previewRequestCounter}`,

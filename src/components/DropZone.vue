@@ -36,12 +36,12 @@ function openPicker() {
     @keydown.enter="openPicker"
     @keydown.space.prevent="openPicker"
   >
-    <p class="drop-zone__title">Drag &amp; drop images here</p>
+    <p class="drop-zone__title">Drag &amp; drop images or PDFs here</p>
     <p class="drop-zone__subtitle">or click to browse — you can select multiple files</p>
     <input
       ref="fileInput"
       type="file"
-      accept="image/*"
+      accept="image/*,application/pdf"
       multiple
       class="drop-zone__input"
       @change="onFileInputChange"

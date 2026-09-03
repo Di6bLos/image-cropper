@@ -2,7 +2,12 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useImageStore } from '../stores/useImageStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
-import { getCenteredCropRect, panCropRect, resizeCropRect } from '../composables/useCropEngine'
+import {
+  getFullImageCropRect,
+  panCropRect,
+  resizeCropRectEdge,
+  type CropHandlePosition,
+} from '../composables/useCropEngine'
 import { runAiCrop } from '../composables/useAiCrop'
 import { exportImages } from '../composables/useImageExport'
 import { downloadBlob } from '../composables/useZipExport'
@@ -16,6 +21,8 @@ const imageStore = useImageStore()
 const settingsStore = useSettingsStore()
 const { show } = useToast()
 const preview = useSinglePreviewSize()
+
+const HANDLE_POSITIONS: CropHandlePosition[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 
 const imageRef = ref<HTMLImageElement | null>(null)
 const displayScale = ref(1)
@@ -137,21 +144,31 @@ function onOverlayPointerUp() {
   panState = null
 }
 
-let resizeState: { startX: number; rect: CropRect } | null = null
+let resizeState:
+  | { startX: number; startY: number; rect: CropRect; handle: CropHandlePosition }
+  | null = null
 
-function onHandlePointerDown(event: PointerEvent) {
+function onHandlePointerDown(event: PointerEvent, handle: CropHandlePosition) {
   const image = activeImage.value
   if (!image?.cropRect) return
   ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-  resizeState = { startX: event.clientX, rect: { ...image.cropRect } }
+  resizeState = { startX: event.clientX, startY: event.clientY, rect: { ...image.cropRect }, handle }
 }
 
 function onHandlePointerMove(event: PointerEvent) {
   const image = activeImage.value
   if (!resizeState || !image) return
   const scale = displayScale.value
-  const delta = (event.clientX - resizeState.startX) / scale
-  const nextRect = resizeCropRect(resizeState.rect, delta, settingsStore.ratio, image.naturalWidth, image.naturalHeight)
+  const dx = (event.clientX - resizeState.startX) / scale
+  const dy = (event.clientY - resizeState.startY) / scale
+  const nextRect = resizeCropRectEdge(
+    resizeState.rect,
+    resizeState.handle,
+    dx,
+    dy,
+    image.naturalWidth,
+    image.naturalHeight,
+  )
   imageStore.setCropRect(image.id, nextRect)
 }
 
@@ -162,7 +179,12 @@ function onHandlePointerUp() {
 function resetCrop() {
   const image = activeImage.value
   if (!image) return
-  imageStore.setCropRect(image.id, getCenteredCropRect(image.naturalWidth, image.naturalHeight, settingsStore.ratio))
+  // Per-image action: only this image's crop is reset. Writing the batch-wide Custom
+  // size (px) here would change `settingsStore.ratio` and make the App.vue watcher
+  // reapply a fresh crop to every *other* image, discarding their edits.
+  imageStore.setCropRect(image.id, getFullImageCropRect(image.naturalWidth, image.naturalHeight))
+  imageStore.setFocalPoint(image.id, null)
+  imageStore.setAiCropStatus(image.id, 'idle')
 }
 
 onMounted(() => window.addEventListener('resize', updateScale))
@@ -217,7 +239,10 @@ watch(activeImage, () => requestAnimationFrame(updateScale))
           @pointercancel="onOverlayPointerUp"
         >
           <CropHandle
-            @pointerdown.stop="onHandlePointerDown"
+            v-for="pos in HANDLE_POSITIONS"
+            :key="pos"
+            :position="pos"
+            @pointerdown.stop="onHandlePointerDown($event, pos)"
             @pointermove.stop="onHandlePointerMove"
             @pointerup.stop="onHandlePointerUp"
             @pointercancel.stop="onHandlePointerUp"
