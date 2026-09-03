@@ -17,12 +17,6 @@ export interface ExportedFile {
   blob: Blob
 }
 
-/**
- * Forcing a fixed output size whose aspect ratio differs from the crop would stretch
- * the image. Honor the exact size only when it matches the crop's shape (e.g. an
- * uncropped image, or a crop kept locked to the chosen ratio); once the crop has been
- * hand-resized to a different shape, export it at its own pixel dimensions instead.
- */
 /** True when the crop rect trims the image rather than covering it in full. */
 export function isCropped(
   cropRect: { x: number; y: number; width: number; height: number },
